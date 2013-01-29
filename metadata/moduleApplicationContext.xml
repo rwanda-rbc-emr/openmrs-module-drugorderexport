@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+	<!-- Beans to add to the current Application context definition -->
+
+<beans>
+
+	<bean id="drugorderUrlMapping"
+		class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+		<property name="mappings">
+			<props>
+				<prop key="module/@MODULE_ID@/drugorderView.form">drugorderForm</prop>
+				<prop key="module/@MODULE_ID@/patientHistory.form">patientHistory</prop>
+				<prop key="module/@MODULE_ID@/showPatientRegimens.form">showPatientRegimens</prop>
+				<prop key="module/@MODULE_ID@/pWhoStoppedDrug.form">patientWhoStoppedDrug</prop>
+				<prop key="module/@MODULE_ID@/startTreatment.form">startTreatment</prop>
+				<prop key="module/@MODULE_ID@/patientWhoHaveChangedRegimen.form">patientWhoHaveChangedRegimen</prop>
+				<prop key="module/@MODULE_ID@/patientsOnProphylaxis.form">patientsOnProphylaxis</prop>
+				<prop key="module/@MODULE_ID@/newOnProphylaxis.form">newOnProphylaxis</prop>
+				<prop key="module/@MODULE_ID@/patOnRegimenType.form">patOnRegimenType</prop>
+				<prop key="module/@MODULE_ID@/viewPatOnRegimenCateg.form">viewPatOnRegimenCateg</prop>
+				
+			</props>
+		</property>
+	</bean>
+	
+		<bean id="viewPatOnRegimenCateg"
+		class="@MODULE_PACKAGE@.web.controller.ViewPatientsOnRegCategoryController" >
+		
+		<property name="viewName">
+			<value>/module/@MODULE_ID@/viewPatientsOnRegCategory</value>
+		</property>
+		
+	</bean>
+	
+	<bean id="patOnRegimenType"
+		class="@MODULE_PACKAGE@.web.controller.PatientOnRegimenTypeController" >
+		
+		<property name="viewName">
+			<value>/module/@MODULE_ID@/patientOnRegType</value>
+		</property>
+		
+	</bean>
+	
+	<bean id="newOnProphylaxis"
+		class="@MODULE_PACKAGE@.web.controller.NewOnProphylaxisController" >
+		
+		<property name="viewName">
+			<value>/module/@MODULE_ID@/newOnProphylaxis</value>
+		</property>
+		
+	</bean>
+
+
+	<bean id="patientWhoHaveChangedRegimen"
+		class="@MODULE_PACKAGE@.web.controller.PatientChangedRegimenController" >
+		<property name="viewName">
+			<value>/module/@MODULE_ID@/patientWhoHaveChangedRegimen</value>
+		</property>
+	</bean>
+	
+	
+	
+	<bean id="patientsOnProphylaxis"
+		class="@MODULE_PACKAGE@.web.controller.ProphylaxisPatientController" >
+		<property name="viewName">
+			<value>/module/@MODULE_ID@/prophylaxisPatients</value>
+		</property>
+	</bean>
+
+
+	<bean id="startTreatment"
+		class="@MODULE_PACKAGE@.web.controller.StartTreatmentController" >
+		
+		<property name="viewName">
+			<value>/module/@MODULE_ID@/startTreatment</value>
+		</property>
+		
+		</bean>
+
+
+	<bean id="showPatientRegimens"
+		class="@MODULE_PACKAGE@.web.controller.ViewPatientRegimenController" />
+
+	<bean id="patientHistory"
+		class="@MODULE_PACKAGE@.web.controller.PatientRegimenHistoryController">
+		<property name="viewName">
+			<value>/module/@MODULE_ID@/patientRegimenHistory</value>
+		</property>
+		</bean>
+
+
+	<bean id="patientWhoStoppedDrug"
+		class="@MODULE_PACKAGE@.web.controller.FindPatientWhoStoppedDrugController">
+		<property name="viewName">
+			<value>/module/@MODULE_ID@/findPeopleWhoStoppedDrug</value>
+		</property>
+	</bean>
+
+
+
+	<bean id="drugorderForm" class="@MODULE_PACKAGE@.web.controller.DrugOrderFormController">
+		<property name="viewName">
+			<value>/module/@MODULE_ID@/drugorderView</value>
+		</property>
+	</bean>
+	
+	
+	
+	
+
+	<bean parent="serviceContext">
+		<property name="moduleService">
+			<list>
+				<value>org.openmrs.module.drugorderexport.service.DrugOrderService</value>
+				<bean
+					class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+					<property name="transactionManager">
+						<ref bean="transactionManager" />
+					</property>
+					<property name="target">
+						<bean
+							class="org.openmrs.module.drugorderexport.serviceimpl.DrugOrderServiceImpl">
+							<property name="drugorderDAO">
+								<bean
+									class="org.openmrs.module.drugorderexport.db.daoimpl.DrugOrderExportDaoImpl">
+									<property name="sessionFactory">
+										<ref bean="sessionFactory" />
+									</property>
+								</bean>
+							</property>
+						</bean>
+					</property>
+					<property name="preInterceptors">
+						<list>
+							<ref bean="authorizationInterceptor" />
+						</list>
+					</property>
+					<property name="transactionAttributeSource">
+						<bean
+							class="org.springframework.transaction.annotation.AnnotationTransactionAttributeSource" />
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+
+</beans>
