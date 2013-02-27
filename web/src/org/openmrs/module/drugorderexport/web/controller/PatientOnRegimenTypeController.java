@@ -1,9 +1,15 @@
 package org.openmrs.module.drugorderexport.web.controller;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Drug;
@@ -170,8 +176,12 @@ public class PatientOnRegimenTypeController extends ParameterizableViewControlle
 				exportPatientIds = secondLinePatientIds;
 			}
 			if (request.getParameterValues("firstLine") != null) {
-				List<Integer> firstLinePatientIds = service.getPatientsOnFirstLineReg(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
+//				List<Integer> firstLinePatientIds = service.getPatientsOnFirstLineReg(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
 				
+				
+				String firstLineConceptIds = DrugOrderExportUtil.gpGetFirstLineDrugConceptIds();
+				List<Integer> firstLinePatientIds = service.getPatientsOnRegimenCategory(firstLineConceptIds, startDate, endDate, gender, mnAge, mxAge,
+					    mnBirthdate, mxBirthdate);
 				
 				String secondLineConceptIds = DrugOrderExportUtil.getSecondLineDrugConceptIds();
 				List<Integer> secLinePatientIds = service.getPatientsOnRegimenCategory(secondLineConceptIds, startDate, endDate, gender, mnAge, mxAge,

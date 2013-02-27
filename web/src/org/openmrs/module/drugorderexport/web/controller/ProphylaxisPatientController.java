@@ -65,11 +65,9 @@ public class ProphylaxisPatientController extends ParameterizableViewController 
 			if (minAge != null && minAge.length() != 0)
 				mnAge = service.getDateObjectFormAge(Integer.parseInt(minAge));
 			
-			
+			List<Integer> patients = new ArrayList<Integer>();
 			
 			List<Integer> patientsList= service.getAllProphylaxisPatients(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
-			
-			List<Integer> patients = new ArrayList<Integer>();
 			
 			for(Integer id:patientsList){
 				if(service.isPatientOnProphylaxisOnly(id))
@@ -78,7 +76,6 @@ public class ProphylaxisPatientController extends ParameterizableViewController 
 		
 			if (checkedValue == 1) {
 				patients = service.getActivePreARTPatients(patients, endDate);
-				
 			}
 			
 			List<Patient> patientList = new ArrayList<Patient>();

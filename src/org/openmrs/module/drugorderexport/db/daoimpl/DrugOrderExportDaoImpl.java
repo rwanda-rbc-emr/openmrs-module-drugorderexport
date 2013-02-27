@@ -130,74 +130,74 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		if (endDate == null) {
 			endDate = new Date();
 		}
-		Date threeMonthsBeforeEndDate = getTreeMonthBefore(endDate);
+//		Date threeMonthsBeforeEndDate = getTreeMonthBefore(endDate);
 		
 		
-		SQLQuery patsCompletedHIVProgram =  session.createSQLQuery(
-			" SELECT patient_id FROM patient_program where program_id=2 and CAST(date_completed as DATE) is not null "
-			+ " group by patient_id "
-			+" order by CAST(date_completed as DATE) asc ");
-		
-
-		List<Integer> patsCompletedHIVProgramList = patsCompletedHIVProgram.list();
+//		SQLQuery patsCompletedHIVProgram =  session.createSQLQuery(
+//			" SELECT patient_id FROM patient_program where program_id=2 and CAST(date_completed as DATE) is not null "
+//			+ " group by patient_id "
+//			+" order by CAST(date_completed as DATE) asc ");
+//		
+//
+//		List<Integer> patsCompletedHIVProgramList = patsCompletedHIVProgram.list();
 
 		
 		for (Integer patientId : patients) {
 			
-			StringBuffer maxEncounterQuery = new StringBuffer();
-			StringBuffer maxReturnVisitQuery = new StringBuffer();
+//			StringBuffer maxEncounterQuery = new StringBuffer();
+//			StringBuffer maxReturnVisitQuery = new StringBuffer();
+//			
+//			maxEncounterQuery.append("select cast(max(encounter_datetime)as DATE) from encounter where ");
+//			maxEncounterQuery.append(" (select(cast(max(encounter_datetime)as Date))) <=  ");
+//			maxEncounterQuery.append(" '" + getDateFormated(endDate) + "' and patient_id = " + patientId);
+//			
+//			
+//			SQLQuery maxEncounter = session.createSQLQuery(maxEncounterQuery.toString());			
+//			
+//			Date maxEncounterDateTime = (Date) maxEncounter.uniqueResult();
+//			
+//			maxReturnVisitQuery.append(" select cast(max(value_datetime) as DATE ) from obs where ");
+//			maxReturnVisitQuery.append(" (select(cast(max(value_datetime)as Date))) <=  ");
+//			maxReturnVisitQuery.append(" '" + getDateFormated(endDate) + "' ");
+//			maxReturnVisitQuery.append(" AND concept_id = 5096 and person_id = " + patientId);
+//			
+//			SQLQuery maxReturnVisit = session.createSQLQuery(maxReturnVisitQuery.toString());
+//			
+//			Date maxReturnVisitDay = (Date) maxReturnVisit.uniqueResult();
 			
-			maxEncounterQuery.append("select cast(max(encounter_datetime)as DATE) from encounter where ");
-			maxEncounterQuery.append(" (select(cast(max(encounter_datetime)as Date))) <=  ");
-			maxEncounterQuery.append(" '" + getDateFormated(endDate) + "' and patient_id = " + patientId);
-			
-			
-			SQLQuery maxEncounter = session.createSQLQuery(maxEncounterQuery.toString());			
-			
-			Date maxEncounterDateTime = (Date) maxEncounter.uniqueResult();
-			
-			maxReturnVisitQuery.append(" select cast(max(value_datetime) as DATE ) from obs where ");
-			maxReturnVisitQuery.append(" (select(cast(max(value_datetime)as Date))) <=  ");
-			maxReturnVisitQuery.append(" '" + getDateFormated(endDate) + "' ");
-			maxReturnVisitQuery.append(" AND concept_id = 5096 and person_id = " + patientId);
-			
-			SQLQuery maxReturnVisit = session.createSQLQuery(maxReturnVisitQuery.toString());
-			
-			Date maxReturnVisitDay = (Date) maxReturnVisit.uniqueResult();
-			
-			if ((maxReturnVisitDay != null) && (maxEncounterDateTime != null)) {
-				
-				if (((maxEncounterDateTime.getTime()) >= threeMonthsBeforeEndDate.getTime() && (maxEncounterDateTime
-				        .getTime()) <= endDate.getTime())
-				        || ((maxReturnVisitDay.getTime()) >= threeMonthsBeforeEndDate.getTime() && (maxReturnVisitDay
-				                .getTime()) <= endDate.getTime())) {
+//			if ((maxReturnVisitDay != null) && (maxEncounterDateTime != null)) {
+//				
+//				if (((maxEncounterDateTime.getTime()) >= threeMonthsBeforeEndDate.getTime() && (maxEncounterDateTime
+//				        .getTime()) <= endDate.getTime())
+//				        || ((maxReturnVisitDay.getTime()) >= threeMonthsBeforeEndDate.getTime() && (maxReturnVisitDay
+//				                .getTime()) <= endDate.getTime())) {
 					
-					if (!getPatientsExitedFromCare().contains(patientId))
+					if (!getPatientsExitedFromCare().contains(patientId)){
 						if(!isAllDrugsStopped(Context.getPatientService().getPatient(patientId)))
 							if(!isPatientOnProphylaxisOnly(patientId))
 //								if(!patsCompletedHIVProgramList.contains(patientId))
 						activePatients.add(patientId);
 					
 				}
-			}
+//			}
 
-			else if (maxReturnVisitDay == null && maxEncounterDateTime != null) {
-				if (maxEncounterDateTime.getTime() >= threeMonthsBeforeEndDate.getTime() && maxEncounterDateTime.getTime()<= endDate.getTime()) {
-					if (!getPatientsExitedFromCare().contains(patientId))
-						if(!isAllDrugsStopped(Context.getPatientService().getPatient(patientId)))
-							if(!isPatientOnProphylaxisOnly(patientId))
-//								if(!patsCompletedHIVProgramList.contains(patientId))
-						activePatients.add(patientId);
-					
-				}
-			} else if (maxReturnVisitDay != null && maxReturnVisitDay.getTime() > endDate.getTime()) {
-				if (!getPatientsExitedFromCare().contains(patientId))
-					if(!isAllDrugsStopped(Context.getPatientService().getPatient(patientId)))
-						if(!isPatientOnProphylaxisOnly(patientId))
-//							if(!patsCompletedHIVProgramList.contains(patientId))
-					activePatients.add(patientId);
-				
-			}
+//			else if (maxReturnVisitDay == null && maxEncounterDateTime != null) {
+//				if (maxEncounterDateTime.getTime() >= threeMonthsBeforeEndDate.getTime() && maxEncounterDateTime.getTime()<= endDate.getTime()) {
+//					if (!getPatientsExitedFromCare().contains(patientId))
+//						if(!isAllDrugsStopped(Context.getPatientService().getPatient(patientId)))
+//							if(!isPatientOnProphylaxisOnly(patientId))
+////								if(!patsCompletedHIVProgramList.contains(patientId))
+//						activePatients.add(patientId);
+//					
+//				}
+//			} else if (maxReturnVisitDay != null && maxReturnVisitDay.getTime() > endDate.getTime()) {
+//				if (!getPatientsExitedFromCare().contains(patientId))
+//					if(!isAllDrugsStopped(Context.getPatientService().getPatient(patientId)))
+//						if(!isPatientOnProphylaxisOnly(patientId))
+////							if(!patsCompletedHIVProgramList.contains(patientId))
+//					activePatients.add(patientId);
+//				
+//			}
 			
 		}
 		return activePatients;
@@ -398,6 +398,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //		portion.append(" inner join drug d on dor.drug_inventory_id = d.drug_id  ");
 //		portion.append(" and o.concept_id IN ("+DrugOrderExportUtil.getProphylaxisDrugConceptIdsStr()+") " );
 		portion.append(" AND (o.concept_id = 916 or o.concept_id = 747 or o.concept_id = 92 ) ");
+//		portion.append(" AND (o.concept_id IN("+DrugOrderExportUtil.gpGetARVConceptIds()+ ") OR o.concept_id NOT IN("+DrugOrderExportUtil.gpGetARVConceptIds()+"))");
 		portion.append(" and (cast(o.start_date as DATE)) <= '");
 		portion.append(getDateFormated(endDate) + "' " + " AND CAST(pg.date_enrolled AS DATE) <= '");
 		portion.append(getDateFormated(endDate) + "' and pg.program_id= 2 ");
@@ -442,14 +443,12 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //			}
 //		}
 		
-		
-		
 		for (Integer patientId : patientIds1) {	
 		if (isPatientOnProphylaxisOnly(patientId)) {
 			result.add(patientId);
 		}
 	    }
-		log.info("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaresult "+result.size());
+//		log.info("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaresult "+result.size());
 		return result;
 	}
 	
@@ -526,43 +525,36 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		
 		portionBuffer.append(" FROM orders o  ");
 		portionBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id  ");
-		portionBuffer
-		        .append(" INNER JOIN patient_program pg on pg.patient_id=pa.patient_id AND pg.program_id=2 AND pg.date_completed is null  ");
+		portionBuffer.append(" INNER JOIN patient_program pg on pg.patient_id=pa.patient_id AND pg.program_id=2 AND pg.date_completed is null  ");
 		portionBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id ");
-		portionBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.getProphylaxisDrugConceptIdsStr() + ") ");
+		portionBuffer.append(" AND (o.concept_id = 916 or o.concept_id = 747 or o.concept_id = 92 ) ");
 		portionBuffer.append(" AND o.voided=0 ");
 		
 		StringBuffer attribStr = new StringBuffer();
 		
-		if ((!(gender.equals(""))) || (minAge != null) || (maxAge != null) || (minBirthdate != null)
-		        || (maxBirthdate != null)) {
-			attribStr.append(" INNER JOIN person p on o.patient_id = p.person_id AND ");
-			attribStr.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
-			attribStr.append(" group by o.patient_id ");
-		}
+		attribStr.append(" INNER JOIN person p on o.patient_id = p.person_id AND ");
+		attribStr.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
+		attribStr.append(" group by o.patient_id ");
 		
-		if ((!(gender.equals(""))) || (minAge != null) || (maxAge != null) || (minBirthdate != null)
-		        || (maxBirthdate != null)) {
-			if ((startDate != null) && (endDate == null)) {
+		if ((!(gender.equals(""))) || (minAge != null) || (maxAge != null) || (minBirthdate != null) || (maxBirthdate != null) && (startDate != null && endDate == null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) >= ");
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " , " + " true " + " ," + "false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
 				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
-			}
-			if ((startDate == null) && (endDate != null)) {
+				
+		}
+		if ((!(gender.equals(""))) || (minAge != null) || (maxAge != null) || (minBirthdate != null) || (maxBirthdate != null) && (startDate == null) && (endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) <= ");
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
 				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
-			}
+		}
 			
-			if ((startDate != null) && (endDate != null)) {
+		if ((!(gender.equals(""))) || (minAge != null) || (maxAge != null) || (minBirthdate != null) || (maxBirthdate != null) && (startDate != null) && (endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) >= ");
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " AND  min(o.start_date)) <= '" + getDateFormated(endDate) + "'"
@@ -570,9 +562,8 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
 				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
-			}
-			if ((startDate == null) && (endDate == null)) {
+		}
+		if ((!(gender.equals(""))) || (minAge != null) || (maxAge != null) || (minBirthdate != null) || (maxBirthdate != null)&&(startDate == null) && (endDate == null)) {
 				endDate = new Date();
 				
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
@@ -580,29 +571,26 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
-				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
-			}
-		} else {
-			if ((startDate != null) && (endDate == null)) {
+
+		}
+		
+			if ((gender.equals("") || minAge == null || maxAge == null || minBirthdate == null || maxBirthdate == null) &&(startDate != null && endDate == null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) >= ");
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " , " + " true" + " ," + " false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(" group by o.patient_id");
 				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 			}
-			if ((startDate == null) && (endDate != null)) {
+			if ((gender.equals("") || minAge == null || maxAge == null || minBirthdate == null || maxBirthdate == null) &&(startDate == null && endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) <= ");
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + " false)");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(" group by o.patient_id");
-				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+
 			}
-			if ((startDate != null) && (endDate != null)) {
+			if ((gender.equals("") || minAge == null || maxAge == null || minBirthdate == null || maxBirthdate == null) &&(startDate != null && endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) >= ");
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " AND (select min(o.start_date))<='" + getDateFormated(endDate) + "'"
@@ -610,10 +598,9 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append(portionBuffer);
 				strBuffer.append("group by o.patient_id");
 				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 			}
 			
-			if (startDate == null && (endDate == null)) {
+			if ((gender.equals("") || minAge == null || maxAge == null || minBirthdate == null || maxBirthdate == null) && (startDate == null && endDate == null)) {
 				endDate = new Date();
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) <= ");
@@ -621,9 +608,9 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append(portionBuffer);
 				strBuffer.append(" group by o.patient_id");
 				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 			}
-		}
+			
+		query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 		
 		List<Object[]> records = query.list();
 		
@@ -944,7 +931,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 		}
 		
-		log.info("ddddddddddddddddddddddddddddddddddddddddddddddddddddddddd "+strBuffer.toString());
+//		log.info("ddddddddddddddddddddddddddddddddddddddddddddddddddddddddd "+strBuffer.toString());
 		
 		List<Object[]> records = query.list();
 		
@@ -1038,22 +1025,30 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 	//==========================================================================================================================================
 	
 	public boolean isPatientOnProphylaxisOnly(Integer patientId) {
+	
 		Patient p=Context.getPatientService().getPatient(patientId);
-		List<Regimen> regimens = RegimenUtils.getRegimenHistory(p).getRegimenList();
 		Set<RegimenComponent> components = new HashSet<RegimenComponent>();
 		
-		for (Regimen r : regimens) {
+		int regimenSize = 1;
+		List<Regimen> regimens = new ArrayList<Regimen>();
+		
+		regimens = RegimenUtils.getRegimenHistory(p).getRegimenList();
+		
+		regimenSize = regimens.size() - 1;
+		components = regimens.get(regimenSize).getComponents();
+		
+		for (Regimen r : regimens) { 
 			components = r.getComponents();
 		}
 		List<Integer> regimenDrugs = new ArrayList<Integer>();
 
 		for (RegimenComponent rc : components) {
-//			if (!rc.getDrugOrder().getDiscontinued())
+			if (!rc.getDrugOrder().getDiscontinued()){
 			if(rc.getDrug()!=null)
 				regimenDrugs.add(rc.getDrug().getConcept().getConceptId());
 				else
 				regimenDrugs.add(rc.getGeneric().getConceptId());
-			
+		   }
 		}
 		boolean found = false;
 		if (DrugOrderExportUtil.gpGetProphylaxisDrugConceptIds().size() >= regimenDrugs.size() && DrugOrderExportUtil.gpGetProphylaxisDrugConceptIds().containsAll(regimenDrugs)) {
@@ -1290,7 +1285,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 		}
 		
-		log.info("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk "+strBuffer.toString());
+//		log.info("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk "+strBuffer.toString());
 		
 		List<Object[]> records = query.list();
 		
@@ -1373,7 +1368,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 			// take regimen other than one made by prophylaxis drugs
 			// if the first is prophylaxis drugs take the following until 
-			// i reach the first arv regimens
+			// it reaches the first arv regimens
 			if (!getPatientsOnAll(seeDrugs,DrugOrderExportUtil.gpGetProphylaxisDrugConceptIds()) && !isRegimenSecondLine(seeDrugs)) {
 				//	                	firstRegimen = regimens.get(i);
 				isOnSecondLine = false;
@@ -2433,62 +2428,63 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		if (endDate == null) {
 			endDate = new Date();
 		}
-		Date threeMonthsBeforeEndDate = getTreeMonthBefore(endDate);
+//		Date threeMonthsBeforeEndDate = getTreeMonthBefore(endDate);
 		
 		for (Integer patientId : patients) {
-			StringBuffer maxEncounterQuery = new StringBuffer();
-			StringBuffer maxReturnVisitQuery = new StringBuffer();
+//			StringBuffer maxEncounterQuery = new StringBuffer();
+//			StringBuffer maxReturnVisitQuery = new StringBuffer();
+//			
+//			maxEncounterQuery.append("select cast(max(encounter_datetime)as DATE) from encounter where ");
+//			maxEncounterQuery.append(" (select(cast(max(encounter_datetime)as Date))) <=  ");
+//			maxEncounterQuery.append(" '" + getDateFormated(endDate) + "' and patient_id = " + patientId);
+//			
+//			
+//			SQLQuery maxEncounter = session.createSQLQuery(maxEncounterQuery.toString());			
+//			
+//			Date maxEncounterDateTime = (Date) maxEncounter.uniqueResult();
+//			
+//			maxReturnVisitQuery.append(" select cast(max(value_datetime) as DATE ) from obs where ");
+//			maxReturnVisitQuery.append(" (select(cast(max(value_datetime)as Date))) <=  ");
+//			maxReturnVisitQuery.append(" '" + getDateFormated(endDate) + "' ");
+//			maxReturnVisitQuery.append(" AND concept_id = 5096 and person_id = " + patientId);
+//			
+//			SQLQuery maxReturnVisit = session.createSQLQuery(maxReturnVisitQuery.toString());
+//			
+//			Date maxReturnVisitDay = (Date) maxReturnVisit.uniqueResult();
 			
-			maxEncounterQuery.append("select cast(max(encounter_datetime)as DATE) from encounter where ");
-			maxEncounterQuery.append(" (select(cast(max(encounter_datetime)as Date))) <=  ");
-			maxEncounterQuery.append(" '" + getDateFormated(endDate) + "' and patient_id = " + patientId);
-			
-			
-			SQLQuery maxEncounter = session.createSQLQuery(maxEncounterQuery.toString());			
-			
-			Date maxEncounterDateTime = (Date) maxEncounter.uniqueResult();
-			
-			maxReturnVisitQuery.append(" select cast(max(value_datetime) as DATE ) from obs where ");
-			maxReturnVisitQuery.append(" (select(cast(max(value_datetime)as Date))) <=  ");
-			maxReturnVisitQuery.append(" '" + getDateFormated(endDate) + "' ");
-			maxReturnVisitQuery.append(" AND concept_id = 5096 and person_id = " + patientId);
-			
-			SQLQuery maxReturnVisit = session.createSQLQuery(maxReturnVisitQuery.toString());
-			
-			Date maxReturnVisitDay = (Date) maxReturnVisit.uniqueResult();
-			
-			if ((maxReturnVisitDay != null) && (maxEncounterDateTime != null)) {
-				
-				if (((maxEncounterDateTime.getTime()) >= threeMonthsBeforeEndDate.getTime() && (maxEncounterDateTime
-				        .getTime()) <= endDate.getTime())
-				        || ((maxReturnVisitDay.getTime()) >= threeMonthsBeforeEndDate.getTime() && (maxReturnVisitDay
-				                .getTime()) <= endDate.getTime())) {
+//			if ((maxReturnVisitDay != null) && (maxEncounterDateTime != null)) {
+//				
+//				if (((maxEncounterDateTime.getTime()) >= threeMonthsBeforeEndDate.getTime() && (maxEncounterDateTime
+//				        .getTime()) <= endDate.getTime())
+//				        || ((maxReturnVisitDay.getTime()) >= threeMonthsBeforeEndDate.getTime() && (maxReturnVisitDay
+//				                .getTime()) <= endDate.getTime())) {
 					
-//					if (!getPatientsExitedFromCare().contains(patientId))
+					if (!getPatientsExitedFromCare().contains(patientId)){
 //					if(!isAllDrugsStopped(Context.getPatientService().getPatient(patientId)))
 //								if(!patsCompletedHIVProgramList.contains(patientId))
 								activePreARTPatients.add(patientId);
+					}
 					
-				}
+//				}
 			}
 
-			else if (maxReturnVisitDay == null && maxEncounterDateTime != null) {
-				if (maxEncounterDateTime.getTime() >= threeMonthsBeforeEndDate.getTime() && maxEncounterDateTime.getTime()<= endDate.getTime()) {
-//					if (!getPatientsExitedFromCare().contains(patientId))
-//						if(!isAllDrugsStopped(Context.getPatientService().getPatient(patientId)))
-//								if(!patsCompletedHIVProgramList.contains(patientId))
-								activePreARTPatients.add(patientId);
-					
-				}
-			} else if (maxReturnVisitDay != null && maxReturnVisitDay.getTime() > endDate.getTime()) {
-//				if (!getPatientsExitedFromCare().contains(patientId))
-//					if(!isAllDrugsStopped(Context.getPatientService().getPatient(patientId)))
-//							if(!patsCompletedHIVProgramList.contains(patientId))
-							activePreARTPatients.add(patientId);
-				
-			}
+//			else if (maxReturnVisitDay == null && maxEncounterDateTime != null) {
+//				if (maxEncounterDateTime.getTime() >= threeMonthsBeforeEndDate.getTime() && maxEncounterDateTime.getTime()<= endDate.getTime()) {
+////					if (!getPatientsExitedFromCare().contains(patientId))
+////						if(!isAllDrugsStopped(Context.getPatientService().getPatient(patientId)))
+////								if(!patsCompletedHIVProgramList.contains(patientId))
+//								activePreARTPatients.add(patientId);
+//					
+//				}
+//			} else if (maxReturnVisitDay != null && maxReturnVisitDay.getTime() > endDate.getTime()) {
+////				if (!getPatientsExitedFromCare().contains(patientId))
+////					if(!isAllDrugsStopped(Context.getPatientService().getPatient(patientId)))
+////							if(!patsCompletedHIVProgramList.contains(patientId))
+//							activePreARTPatients.add(patientId);
+//				
+//			}
 			
-		}
+		//}
 		return activePreARTPatients;
     }
     
