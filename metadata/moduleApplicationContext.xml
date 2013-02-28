@@ -76,7 +76,7 @@
 			<value>/module/@MODULE_ID@/startTreatment</value>
 		</property>
 		
-		</bean>
+	</bean>
 
 
 	<bean id="showPatientRegimens"

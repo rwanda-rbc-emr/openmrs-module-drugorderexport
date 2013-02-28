@@ -520,50 +520,58 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		
 		StringBuffer portionBuffer = new StringBuffer();
 		
-		if (endDate == null)
-			endDate = new Date();
 		
 		portionBuffer.append(" FROM orders o  ");
 		portionBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id  ");
-		portionBuffer.append(" INNER JOIN patient_program pg on pg.patient_id=pa.patient_id AND pg.program_id=2 AND pg.date_completed is null  ");
+		portionBuffer
+		        .append(" INNER JOIN patient_program pg on pg.patient_id=pa.patient_id AND pg.program_id=2   ");
 		portionBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id ");
+//		portionBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.getProphylaxisDrugConceptIdsStr() + ") ");
 		portionBuffer.append(" AND (o.concept_id = 916 or o.concept_id = 747 or o.concept_id = 92 ) ");
-		portionBuffer.append(" AND o.voided=0 ");
+//		portionBuffer.append(" AND o.voided=0 ");
 		
 		StringBuffer attribStr = new StringBuffer();
 		
-		attribStr.append(" INNER JOIN person p on o.patient_id = p.person_id AND ");
-		attribStr.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
-		attribStr.append(" group by o.patient_id ");
+		if (!gender.equals("") || minAge != null || maxAge != null || minBirthdate != null || maxBirthdate != null) {
+			attribStr.append(" INNER JOIN person p on o.patient_id = p.person_id AND ");
+			attribStr.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
+			attribStr.append(" group by o.patient_id ");
+		}
 		
-		if ((!(gender.equals(""))) || (minAge != null) || (maxAge != null) || (minBirthdate != null) || (maxBirthdate != null) && (startDate != null && endDate == null)) {
+		if ((!(gender.equals(""))) || (minAge != null) || (maxAge != null) || (minBirthdate != null)    || (maxBirthdate != null)) {
+			if (startDate != null && endDate == null) {
+				
+				endDate = new Date();
+				
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) >= ");
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " , " + " true " + " ," + "false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
 				
-				
-		}
-		if ((!(gender.equals(""))) || (minAge != null) || (maxAge != null) || (minBirthdate != null) || (maxBirthdate != null) && (startDate == null) && (endDate != null)) {
+				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+			}
+			if ((startDate == null) && (endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) <= ");
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
 				
-		}
+				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+			}
 			
-		if ((!(gender.equals(""))) || (minAge != null) || (maxAge != null) || (minBirthdate != null) || (maxBirthdate != null) && (startDate != null) && (endDate != null)) {
+			if ((startDate != null) && (endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) >= ");
-				strBuffer.append("'" + getDateFormated(startDate) + "'" + " AND  min(o.start_date)) <= '" + getDateFormated(endDate) + "'"
+				strBuffer.append("'" + getDateFormated(startDate) + "'" + " AND  (select min(o.start_date)) <= '" + getDateFormated(endDate) + "'"
 				        + " , " + " true" + " , " + " false " + ") ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
 				
-		}
-		if ((!(gender.equals(""))) || (minAge != null) || (maxAge != null) || (minBirthdate != null) || (maxBirthdate != null)&&(startDate == null) && (endDate == null)) {
+				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+			}
+			if ((startDate == null) && (endDate == null)) {
 				endDate = new Date();
 				
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
@@ -571,26 +579,32 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
-
-		}
-		
-			if ((gender.equals("") || minAge == null || maxAge == null || minBirthdate == null || maxBirthdate == null) &&(startDate != null && endDate == null)) {
+				
+				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+			}
+		} else {
+			if ((startDate != null) && (endDate == null)) {
+				
+				endDate = new Date();
+				
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) >= ");
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " , " + " true" + " ," + " false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(" group by o.patient_id");
 				
+				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 			}
-			if ((gender.equals("") || minAge == null || maxAge == null || minBirthdate == null || maxBirthdate == null) &&(startDate == null && endDate != null)) {
+			if ((startDate == null) && (endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) <= ");
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + " false)");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(" group by o.patient_id");
-
+				
+				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 			}
-			if ((gender.equals("") || minAge == null || maxAge == null || minBirthdate == null || maxBirthdate == null) &&(startDate != null && endDate != null)) {
+			if ((startDate != null) && (endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) >= ");
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " AND (select min(o.start_date))<='" + getDateFormated(endDate) + "'"
@@ -598,9 +612,10 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append(portionBuffer);
 				strBuffer.append("group by o.patient_id");
 				
+				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 			}
 			
-			if ((gender.equals("") || minAge == null || maxAge == null || minBirthdate == null || maxBirthdate == null) && (startDate == null && endDate == null)) {
+			if (startDate == null && (endDate == null)) {
 				endDate = new Date();
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) <= ");
@@ -608,9 +623,11 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append(portionBuffer);
 				strBuffer.append(" group by o.patient_id");
 				
+				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 			}
-			
-		query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+		}
+		
+		log.info("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq "+query.toString());
 		
 		List<Object[]> records = query.list();
 		
@@ -628,7 +645,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		for (String key : patientStartedWhenMap.keySet()) {
 			if (key.charAt(0) == '1') {
 				Patient patient = Context.getPatientService().getPatient(patientStartedWhenMap.get(key));
-				if (!patient.getVoided())
+//				if (!patient.getVoided())
 					patientIds.add(patient.getPatientId());
 			}
 		}
@@ -771,11 +788,10 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		
 		SQLQuery query = null;
 		
-		if(endDate==null)
-			endDate=new Date();
-		
+
 		if (!gender.equals("") || minAge != null || maxAge != null || minBirthdate != null || maxBirthdate != null) {
 			if (startDate != null && endDate == null) {
+				endDate=new Date();
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) <= ");
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " , " + " true " + " ," + "false)");
@@ -836,6 +852,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 			}
 			if (startDate == null && endDate == null) {
+				endDate=new Date();
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) <= ");
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false)");
@@ -857,6 +874,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 		} else {
 			if (startDate != null && endDate == null) {
+				endDate=new Date();
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) <= ");
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " , " + " true" + " ," + " false)");
@@ -913,6 +931,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				
 			}
 			if (startDate == null && endDate == null) {
+				endDate=new Date();
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
 				strBuffer.append("IF((select min(o.start_date)) <= ");
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + " false)");
@@ -2572,7 +2591,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
     		queryPortion.append(" INNER JOIN patient_program pg on pat.patient_id=pg.patient_id ");
     		queryPortion.append(" INNER JOIN program gr on gr.program_id=pg.program_id AND gr.program_id = 2 ");
     		queryPortion.append(" AND o.concept_id in( "+categoryConceptId+") ");
-    		queryPortion.append(" AND o.voided=0 AND pat.voided=0 AND pg.voided=0 ");
+//    		queryPortion.append(" AND o.voided=0 AND pat.voided=0 AND pg.voided=0 ");
     	}
     	else{
     		queryPortion.append(" SELECT DISTINCT o.patient_id FROM orders o ");
@@ -2582,7 +2601,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
     		queryPortion.append(" INNER JOIN patient_program pg on pat.patient_id=pg.patient_id ");
     		queryPortion.append(" INNER JOIN program gr on gr.program_id=pg.program_id AND gr.program_id =2 ");
     		queryPortion.append(" AND o.concept_id in( "+categoryConceptId+") ");
-    		queryPortion.append(" AND o.voided=0 AND pat.voided=0 AND pg.voided=0 ");
+//    		queryPortion.append(" AND o.voided=0 AND pat.voided=0 AND pg.voided=0 ");
     		queryPortion.append(" INNER JOIN person p on o.patient_id = p.person_id AND  ");
     		queryPortion.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
     	}
