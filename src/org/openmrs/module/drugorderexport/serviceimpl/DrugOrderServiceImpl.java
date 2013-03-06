@@ -345,9 +345,8 @@ public class DrugOrderServiceImpl implements DrugOrderService {
 		return drugorderDAO.isLastRegimenProphy(p);
 	}
 	@Override
-	public boolean isPatientOnProphylaxisOnly(Integer patientId) {
-		// TODO Auto-generated method stub
-		return drugorderDAO.isPatientOnProphylaxisOnly(patientId);
+	public boolean isPatientOnProphylaxisOnlyBeforePeriod(Integer patientId,Date enddate) {
+		return drugorderDAO.isPatientOnProphylaxisOnlyBeforePeriod(patientId,enddate);
 	}
 	
 

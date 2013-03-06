@@ -176,13 +176,13 @@ public class PatientOnRegimenTypeController extends ParameterizableViewControlle
 				exportPatientIds = secondLinePatientIds;
 			}
 			if (request.getParameterValues("firstLine") != null) {
-//				List<Integer> firstLinePatientIds = service.getPatientsOnFirstLineReg(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
+				List<Integer> firstLinePatientIds = service.getPatientsOnFirstLineReg(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
 				
-				
-				String firstLineConceptIds = DrugOrderExportUtil.gpGetFirstLineDrugConceptIds();
-				List<Integer> firstLinePatientIds = service.getPatientsOnRegimenCategory(firstLineConceptIds, startDate, endDate, gender, mnAge, mxAge,
-					    mnBirthdate, mxBirthdate);
-				
+//				
+//				String firstLineConceptIds = DrugOrderExportUtil.gpGetFirstLineDrugConceptIds();
+//				List<Integer> firstLinePatientIds = service.getPatientsOnRegimenCategory(firstLineConceptIds, startDate, endDate, gender, mnAge, mxAge,
+//					    mnBirthdate, mxBirthdate);
+//				
 				String secondLineConceptIds = DrugOrderExportUtil.getSecondLineDrugConceptIds();
 				List<Integer> secLinePatientIds = service.getPatientsOnRegimenCategory(secondLineConceptIds, startDate, endDate, gender, mnAge, mxAge,
 				    mnBirthdate, mxBirthdate);

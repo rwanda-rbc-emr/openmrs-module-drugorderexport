@@ -173,8 +173,8 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //				                .getTime()) <= endDate.getTime())) {
 					
 					if (!getPatientsExitedFromCare().contains(patientId)){
-						if(!isAllDrugsStopped(Context.getPatientService().getPatient(patientId)))
-							if(!isPatientOnProphylaxisOnly(patientId))
+//						if(!isAllDrugsStopped(Context.getPatientService().getPatient(patientId)))
+//							if(!isPatientOnProphylaxisOnlyBeforePeriod(patientId,endDate))
 //								if(!patsCompletedHIVProgramList.contains(patientId))
 						activePatients.add(patientId);
 					
@@ -396,8 +396,8 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		portion.append(" inner join orders o on pa.patient_id = o.patient_id  ");
 		portion.append(" inner join drug_order dor on dor.order_id = o.order_id ");
 //		portion.append(" inner join drug d on dor.drug_inventory_id = d.drug_id  ");
-//		portion.append(" and o.concept_id IN ("+DrugOrderExportUtil.getProphylaxisDrugConceptIdsStr()+") " );
-		portion.append(" AND (o.concept_id = 916 or o.concept_id = 747 or o.concept_id = 92 ) ");
+		portion.append(" and o.concept_id IN ("+DrugOrderExportUtil.getProphylaxisDrugConceptIdsStr()+") " );
+//		portion.append(" AND (o.concept_id = 916 or o.concept_id = 747 or o.concept_id = 92 ) ");
 //		portion.append(" AND (o.concept_id IN("+DrugOrderExportUtil.gpGetARVConceptIds()+ ") OR o.concept_id NOT IN("+DrugOrderExportUtil.gpGetARVConceptIds()+"))");
 		portion.append(" and (cast(o.start_date as DATE)) <= '");
 		portion.append(getDateFormated(endDate) + "' " + " AND CAST(pg.date_enrolled AS DATE) <= '");
@@ -414,8 +414,6 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			b.append(" AND " + patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
 		}
 		query = sessionFactory.getCurrentSession().createSQLQuery(b.toString());
-		
-		log.info("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy "+b.toString());
 		
 		List<Integer> patientIds1 = query.list();
 		
@@ -444,9 +442,9 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //		}
 		
 		for (Integer patientId : patientIds1) {	
-		if (isPatientOnProphylaxisOnly(patientId)) {
+//		if (isPatientOnProphylaxisOnly(patientId)) {
 			result.add(patientId);
-		}
+//		}
 	    }
 //		log.info("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaresult "+result.size());
 		return result;
@@ -548,8 +546,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " , " + " true " + " ," + "false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
-				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+
 			}
 			if ((startDate == null) && (endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
@@ -557,8 +554,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
-				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+
 			}
 			
 			if ((startDate != null) && (endDate != null)) {
@@ -568,8 +564,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				        + " , " + " true" + " , " + " false " + ") ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
-				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+
 			}
 			if ((startDate == null) && (endDate == null)) {
 				endDate = new Date();
@@ -579,8 +574,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
-				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+
 			}
 		} else {
 			if ((startDate != null) && (endDate == null)) {
@@ -592,8 +586,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " , " + " true" + " ," + " false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(" group by o.patient_id");
-				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+	
 			}
 			if ((startDate == null) && (endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
@@ -601,8 +594,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + " false)");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(" group by o.patient_id");
-				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+
 			}
 			if ((startDate != null) && (endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
@@ -611,8 +603,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				        + " ," + "true" + " ," + "false)");
 				strBuffer.append(portionBuffer);
 				strBuffer.append("group by o.patient_id");
-				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+
 			}
 			
 			if (startDate == null && (endDate == null)) {
@@ -623,11 +614,11 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append(portionBuffer);
 				strBuffer.append(" group by o.patient_id");
 				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 			}
 		}
 		
-		log.info("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq "+query.toString());
+//		log.info("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq "+query.toString());
+		query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 		
 		List<Object[]> records = query.list();
 		
@@ -1034,16 +1025,16 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		for (Integer patientId : patientIds) {
 			Patient p = Context.getPatientService().getPatient(patientId);
 			
-			if (isPatientOnProphylaxisOnly(patientId)) {
+//			if (isPatientOnProphylaxisOnly(patientId)) {
 				patientOnProphylaxis.add(p.getPatientId());
-			}
+//			}
 		}
 		return patientOnProphylaxis;
 	}
 	
 	//==========================================================================================================================================
 	
-	public boolean isPatientOnProphylaxisOnly(Integer patientId) {
+	public boolean isPatientOnProphylaxisOnlyBeforePeriod(Integer patientId,Date enddate) {
 	
 		Patient p=Context.getPatientService().getPatient(patientId);
 		Set<RegimenComponent> components = new HashSet<RegimenComponent>();
@@ -1062,7 +1053,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		List<Integer> regimenDrugs = new ArrayList<Integer>();
 
 		for (RegimenComponent rc : components) {
-			if (!rc.getDrugOrder().getDiscontinued()){
+			if (!rc.getDrugOrder().getDiscontinued() && rc.getDrugOrder().getStartDate().getTime()<= enddate.getTime()){
 			if(rc.getDrug()!=null)
 				regimenDrugs.add(rc.getDrug().getConcept().getConceptId());
 				else

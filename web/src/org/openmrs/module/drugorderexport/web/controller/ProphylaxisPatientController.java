@@ -70,7 +70,7 @@ public class ProphylaxisPatientController extends ParameterizableViewController 
 			List<Integer> patientsList= service.getAllProphylaxisPatients(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
 			
 			for(Integer id:patientsList){
-				if(service.isPatientOnProphylaxisOnly(id))
+				if(service.isPatientOnProphylaxisOnlyBeforePeriod(id, endDate))
 					patients.add(id);
 			}
 		
@@ -117,7 +117,6 @@ public class ProphylaxisPatientController extends ParameterizableViewController 
 					
 			// for data exportation
 			if (request.getParameter("export") != null && !request.getParameter("export").equals("")) {
-	
 					if (Context.getAuthenticatedUser().hasPrivilege("Export Collective Patient Data")) {
 						if (request.getParameter("export").equals("excel"))
 							DrugOrderExportUtil.exportData(request, response, patientList);

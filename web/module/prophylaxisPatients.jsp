@@ -152,12 +152,16 @@
 	<b class="boxHeader" style=" width:100% ;padding: 0em; margin-right: 0em;margin-left:0em ">
 	
 	<div>
-	Patients 
+	preART &nbsp;
+	<c:if test="${checkedValueExport==1}"><spring:message code="drugorderexport.active" /> </c:if>
+	<c:if test="${checkedValueExport==0}"><spring:message code="drugorderexport.cumulative" /> </c:if>
+	
+	
 	<c:if test="${gender=='Any'}">(<spring:message code="drugorderexport.anyGender" />) </c:if>
     <c:if test="${gender=='Male'}">(<spring:message code="drugorderexport.male" />) </c:if>
     <c:if test="${gender=='Female'}">(<spring:message code="drugorderexport.female" />) </c:if>
 	
-	<spring:message code="drugorderexport.prophy" />
+	<!-- <spring:message code="drugorderexport.prophy" /> -->
 	
 	<c:if test="${!empty startdate && !empty enddate}"><spring:message code="drugorderexport.inThePeriod" /> &nbsp;<spring:message code="drugorderexport.between" />&nbsp; ${startdate }&nbsp; <spring:message code="drugorderexport.and" /> &nbsp; ${enddate }&nbsp;</c:if>
     <c:if test="${!empty startdate && empty enddate}"> <spring:message code="drugorderexport.from" /> &nbsp; ${startdate }&nbsp; <spring:message code="drugorderexport.upToNow" /></c:if>

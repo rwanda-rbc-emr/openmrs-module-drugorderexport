@@ -421,5 +421,5 @@ public interface DrugOrderExportDao {
 	 
 	 public Boolean isLastRegimenProphy(Patient p);
 	 
-	 public boolean isPatientOnProphylaxisOnly(Integer patientId);
+	 public boolean isPatientOnProphylaxisOnlyBeforePeriod(Integer patientId,Date enddate);
 }
