@@ -1053,7 +1053,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		List<Integer> regimenDrugs = new ArrayList<Integer>();
 
 		for (RegimenComponent rc : components) {
-			if (!rc.getDrugOrder().getDiscontinued() && rc.getDrugOrder().getStartDate().getTime()<= enddate.getTime()){
+			if (!rc.getDrugOrder().getDiscontinued() && (rc.getDrugOrder().getStartDate()!=null && rc.getDrugOrder().getStartDate().getTime()<= enddate.getTime())){
 			if(rc.getDrug()!=null)
 				regimenDrugs.add(rc.getDrug().getConcept().getConceptId());
 				else

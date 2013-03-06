@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC "-//OpenMRS//DTD OpenMRS Config 1.2//EN" "http://resources.openmrs.org/doctype/config-1.2.dtd">
+
+<module configVersion="1.0">
+	
+	<!-- Base Module Properties -->
+	<id>drugorderexport</id>
+	<name>HIV Drugs Reporting</name>
+	<version>0.5.3</version>
+	<package>org.openmrs.module.drugorderexport</package>
+	<author>Mariam N.</author>
+	<description>
+			Drug Order. This Module is a Drug Order Reporting System...
+	</description>
+
+	<activator>org.openmrs.module.drugorderexport.DrugOrderActivator</activator>
+	
+	<!-- <updateURL>https://dev.openmrs.org/modules/download/drugorderexport/update.rdf</updateURL> -->
+	<!-- /Base Module Properties -->
+	
+	<require_version>1.6.2</require_version>
+	
+	<!-- Extensions -->
+	<extension>
+		<point>org.openmrs.tracmodule.list</point>
+		<class>org.openmrs.module.drugorderexport.extension.html.AdminList</class>
+	</extension>
+	
+	
+	<!-- AOP
+	<advice>
+		<point>org.openmrs.api.FormService</point>
+		<class>org.openmrs.module.drugorderexport.advice.DuplicateFormAdvisor</class>
+	</advice>
+	 /AOP -->
+	
+	
+	<privilege>
+		<name>View HIV Drugs Reporting</name>
+		<description>Allows user to View HIV Drugs Reporting</description>
+	</privilege>
+	
+	<privilege>
+		<name>View Patient Regimens History</name>
+		<description>Able View Patient Regimens History</description>
+	</privilege>
+	
+	
+	<privilege>
+		<name>Export Collective Patient Data</name>
+		<description>Able to Export Collective Patient Data</description>
+	</privilege>
+	
+
+	<globalProperty>
+		<property>drugorderexport.prophylaxisDrugIds</property>
+		<defaultValue>22,23,24,27,37</defaultValue>
+		<description>
+			list of Prophylaxis drug ids
+		</description>
+	</globalProperty>	
+	
+	<globalProperty>
+		<property>drugorderexport.prophylaxisDrugConceptIds</property>
+		<defaultValue>916,747,92</defaultValue>
+		<description>
+			Concept ids for prophylaxis drugs
+		</description>
+	</globalProperty>	
+	
+	<globalProperty>
+		<property>drugorderexport.secondLineDrugIds</property>
+		<defaultValue>21,26,28,36</defaultValue>
+		<description>
+			list of second drug ids
+		</description>
+	</globalProperty>
+	
+	<globalProperty>
+		<property>drugorderexport.secondLineDrugConceptIds</property>
+		<defaultValue>795,749,794</defaultValue>
+		<description>
+			Concept ids for Second Line drugs
+		</description>
+	</globalProperty>
+	
+	<globalProperty> 
+		<property>drugorderexport.firstLineDrugConceptIds</property>
+		<defaultValue>633,814,796,628,635,631,5424,625,802,5811,797,2203,1613</defaultValue>
+		<description>
+			Concept ids for First Line drugs
+		</description>
+	</globalProperty>
+	
+	<globalProperty>
+		<property>drugorderexport.arvConceptIds</property>
+		<defaultValue>633,814,796,628,749,794,795,635,631,5424,625,792,802,5811,797,630,2833,2203,1613</defaultValue>
+		<description>
+			those are the concept Ids of ARVs Drugs
+		</description>
+	</globalProperty>
+	
+	<globalProperty>
+		<property>drugorderexport.arvDrugsIds</property>
+		<defaultValue>1,2,3,4,5,6,7,8,9,15,16,17,18,19,20,21,25,29,30,31,32,33,34,35,36</defaultValue>
+		<description>
+			those are the Ids of ARV drugs 
+		</description>
+	</globalProperty>
+	
+		<globalProperty>
+		<property>drugorderexport.firstLineDrugsIds</property>
+		<defaultValue>1,2,3,4,5,6,7,8,9,12,16,17,18,19,20,29,30,31,32,33,34,35</defaultValue>
+		<description>
+			those are the Ids of first line drugs 
+		</description>
+	</globalProperty>
+	
+	<globalProperty>
+		<property>drugorderexport.tbDrugIds</property>
+		<defaultValue>656,767,745,5829,438,1411,1417,1406,740,1418,755,955,1414,1413,1419,1415,1633,450,2459,2460</defaultValue>
+		<description>
+			list of TB drug ids
+		</description>
+	</globalProperty>
+	
+	<globalProperty>
+		<property>drugorderexport.tbAndProphylaxisDrugIds</property>
+		<defaultValue>10,11,12,13,22,23,24,27,37</defaultValue>
+		<description>
+			list of Prophylaxis and TB drug ids
+		</description>
+	</globalProperty>
+	
+	<globalProperty>
+		<property>drugorderexport.tbAndProphylaxisDrugConceptIds</property>
+		<defaultValue>656,767,745,5829,438,1411,1417,1406,740,1418,755,955,1414,1413,1419,1415,1633,450,2459,2460,916,747,92</defaultValue>
+		<description>
+			list of Prophylaxis and TB drug concept ids
+		</description>
+	</globalProperty>
+	<!--
+	<dwr>
+		<allow>
+			<create creator="new" javascript="DWRFormEntryService">
+				<param name="class" value="org.openmrs.module.drugorderexport.web.DWRFormEntryService"/>
+				<include method="enterForm"/>
+			</create>
+		</allow>
+
+		<signatures>
+			<![CDATA[
+			import org.openmrs.module.drugorderexport.web.DWRFormEntryService;
+			DWRFormEntryService.enterForm(Integer patientId, Integer formId, boolean useEncounter, List<String> fields);
+			]]>
+		</signatures>	
+	</dwr>
+	-->
+	
+	<!-- Servlets -->
+	<!-- Accessed through the url /pageContext()/moduleServlet/<moduleId>/<servlet-name> 
+	<servlet>
+		<servlet-name>formDownload</servlet-name>
+		<servlet-class>org.openmrs.module.drugorderexport.web.FormDownloadServlet</servlet-class>
+	</servlet>
+	-->
+	<!-- /Servlets -->
+	
+	
+	<!-- Internationalization -->
+	<!-- All message codes should start with drugorderexport.* -->
+	<messages>
+		<lang>en</lang>
+		<file>messages.properties</file>
+	</messages>
+	<messages>
+		<lang>fr</lang>
+		<file>messages_fr.properties</file>
+	</messages>
+	<messages>
+		<lang>es</lang>
+		<file>messages_es.properties</file>
+	</messages>
+	<!-- /Internationalization -->
+	
+</module>
+
