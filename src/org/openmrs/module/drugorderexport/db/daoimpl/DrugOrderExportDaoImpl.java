@@ -1039,6 +1039,9 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		Patient p=Context.getPatientService().getPatient(patientId);
 		Set<RegimenComponent> components = new HashSet<RegimenComponent>();
 		
+		if(enddate==null)
+			enddate=new Date();
+		
 		int regimenSize = 1;
 		List<Regimen> regimens = new ArrayList<Regimen>();
 		
