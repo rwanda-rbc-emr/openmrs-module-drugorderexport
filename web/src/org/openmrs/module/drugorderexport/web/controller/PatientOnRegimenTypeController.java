@@ -144,7 +144,9 @@ public class PatientOnRegimenTypeController extends ParameterizableViewControlle
 				
 				
 				if (checkedValue == 1)
-					arvPatientIds = service.getActivePatients(arvPatientIds, endDate);
+//					arvPatientIds = service.getActivePatients(arvPatientIds, endDate);
+					arvPatientIds = service.getPatientsOnRegimenCategoryActive(arvConceptIds, startDate, endDate, gender, mnAge, mxAge,
+						    mnBirthdate, mxBirthdate);
 					categoryPatients.put("ARV ", arvPatientIds);
 				
 					exportPatientIds = arvPatientIds;

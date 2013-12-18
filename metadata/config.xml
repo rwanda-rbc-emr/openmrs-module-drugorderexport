@@ -6,7 +6,7 @@
 	<!-- Base Module Properties -->
 	<id>drugorderexport</id>
 	<name>HIV Drugs Reporting</name>
-	<version>0.5.3</version>
+	<version>0.5.4</version>
 	<package>org.openmrs.module.@MODULE_ID@</package>
 	<author>Mariam N.</author>
 	<description>

@@ -185,9 +185,9 @@ public class DrugOrderServiceImpl implements DrugOrderService {
      * @see org.openmrs.module.drugorderexport.service.DrugOrderService#getPatientsExitedFromCare()
      */
     @Override
-    public List<Integer> getPatientsExitedFromCare() {
+    public List<Integer> getPatientsExitedFromCare(Date endDate) {
 	    // TODO Auto-generated method stub
-	    return drugorderDAO.getPatientsExitedFromCare();
+	    return drugorderDAO.getPatientsExitedFromCare(endDate);
     }
 	/**
      * @see org.openmrs.module.drugorderexport.service.DrugOrderService#getProphylaxisDrugsIds()
@@ -347,6 +347,42 @@ public class DrugOrderServiceImpl implements DrugOrderService {
 	@Override
 	public boolean isPatientOnProphylaxisOnlyBeforePeriod(Integer patientId,Date enddate) {
 		return drugorderDAO.isPatientOnProphylaxisOnlyBeforePeriod(patientId,enddate);
+	}
+	@Override
+	public List<Integer> getPatientsOnRegimenCategoryActive(
+			String categoryConceptId, Date startDate, Date endDate,
+			String gender, Date minAge, Date maxAge, Date minBirthdate,
+			Date maxBirthdate) {
+
+		return drugorderDAO.getPatientsOnRegimenCategoryActive(categoryConceptId, startDate, endDate,
+				gender, minAge, maxAge, minBirthdate,
+				maxBirthdate);
+	}
+	@Override
+	public List<Integer> searchDrugOrderByDrugActive(String anyOrAll,
+			Date startdate, Date enddate, List<Drug> drugs, String gender,
+			Date minAge, Date maxAge, Date minBirthdate, Date maxBirthdate) {
+
+		
+		return drugorderDAO.searchDrugOrderByDrugActive(anyOrAll,
+				startdate, enddate, drugs,  gender,
+				 minAge,  maxAge,  minBirthdate,  maxBirthdate);
+	}
+	@Override
+	public List<Integer> getPatientsOnFirstLineRegActive(Date startdate,
+			Date enddate, String gender, Date minAge, Date maxAge,
+			Date minBirthdate, Date maxBirthdate) {
+	
+		return drugorderDAO.getPatientsOnFirstLineRegActive(startdate,
+				enddate, gender, minAge, maxAge,
+				minBirthdate, maxBirthdate);
+	}
+
+	@Override
+	public List<Integer> getActiveOnDrugsPatients(List<Integer> patients,
+			String list, Date endDate) {
+		// TODO Auto-generated method stub
+		return drugorderDAO.getActiveOnDrugsPatients(patients,list,endDate);
 	}
 	
 

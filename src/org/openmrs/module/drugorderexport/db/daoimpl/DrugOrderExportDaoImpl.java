@@ -27,6 +27,8 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.drugorderexport.DrugOrderExportUtil;
 import org.openmrs.module.drugorderexport.db.dao.DrugOrderExportDao;
 import org.openmrs.module.drugorderexport.service.DrugOrderService;
+
+
 import org.openmrs.module.regimenhistory.Regimen;
 import org.openmrs.module.regimenhistory.RegimenComponent;
 import org.openmrs.module.regimenhistory.RegimenUtils;
@@ -172,8 +174,8 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //				        .getTime()) <= endDate.getTime())
 //				        || ((maxReturnVisitDay.getTime()) >= threeMonthsBeforeEndDate.getTime() && (maxReturnVisitDay
 //				                .getTime()) <= endDate.getTime())) {
-					
-					if (!getPatientsExitedFromCare().contains(patientId)){
+
+					if (!getPatientsExitedFromCare(endDate).contains(patientId)){
 //						if(!isAllDrugsStopped(Context.getPatientService().getPatient(patientId)))
 //							if(!isPatientOnProphylaxisOnlyBeforePeriod(patientId,endDate))
 //								if(!patsCompletedHIVProgramList.contains(patientId))
@@ -389,20 +391,19 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		if (endDate == null) {
 			endDate = new Date();
 		}
-		
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 		StringBuffer portion = new StringBuffer();
-		portion.append(" select distinct pa.patient_id from patient pa ");
-		portion.append(" inner join patient_program pg on pa.patient_id = pg.patient_id ");
-		portion.append(" inner join person p on pa.patient_id = p.person_id ");
-		portion.append(" inner join orders o on pa.patient_id = o.patient_id  ");
-		portion.append(" inner join drug_order dor on dor.order_id = o.order_id ");
-//		portion.append(" inner join drug d on dor.drug_inventory_id = d.drug_id  ");
+		portion.append(" select distinct pa.patient_id from patient_program pg  ");
+		portion.append(" inner join person p on pg.patient_id = p.person_id ");
+		portion.append(" inner join patient pa on pg.patient_id = pa.patient_id ");
+		portion.append(" inner join orders o on pg.patient_id = o.patient_id  ");
+		portion.append(" where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate) + " ')) ");
 		portion.append(" and o.concept_id IN ("+DrugOrderExportUtil.getProphylaxisDrugConceptIdsStr()+") " );
-//		portion.append(" AND (o.concept_id = 916 or o.concept_id = 747 or o.concept_id = 92 ) ");
 //		portion.append(" AND (o.concept_id IN("+DrugOrderExportUtil.gpGetARVConceptIds()+ ") OR o.concept_id NOT IN("+DrugOrderExportUtil.gpGetARVConceptIds()+"))");
 		portion.append(" and (cast(o.start_date as DATE)) <= '");
-		portion.append(getDateFormated(endDate) + "' " + " AND CAST(pg.date_enrolled AS DATE) <= '");
-		portion.append(getDateFormated(endDate) + "' and pg.program_id= 2 ");
+		portion.append(getDateFormated(endDate) + "' ");
+		portion.append(" and pg.program_id= 2 and pg.voided = 0 and p.voided = 0 and o.voided = 0 ");
+		portion.append(" and pg.date_enrolled <= '" + df.format(endDate) +"'");
 		portion.append(checkInputDate(startDate, endDate));
 		
 		
@@ -419,8 +420,9 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		List<Integer> patientIds1 = query.list();
 		
 		List<Integer> result = new ArrayList<Integer>();
-		
-//		for (Integer patientId : patientIds1) {
+		List<Integer> patientIds2 = new ArrayList<Integer>();
+//		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		for (Integer patientId : patientIds1) {
 //			SQLQuery query2 = this.sessionFactory
 //			        .getCurrentSession()
 //			        .createSQLQuery(
@@ -428,26 +430,39 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //			            "inner join patient_program pg on pg.patient_id = pa.patient_id " +
 //			            "inner join person pe on pa.patient_id = pe.person_id " +
 //			            "inner join orders o on pa.patient_id = o.patient_id " +
-//			            "inner join drug_order dor on o.order_id = dor.order_id " +
-//			            "inner join drug d on dor.drug_inventory_id = d.drug_id  and d.concept_id IN ("+ DrugOrderExportUtil.gpGetARVConceptIds()
+////			            "inner join drug_order dor on o.order_id = dor.order_id " +
+//			            " and o.concept_id IN ("+ DrugOrderExportUtil.gpGetARVConceptIds()
 //			                    + ") and pg.program_id= 2 "
 //			                    + " and pa.patient_id = " + patientId);
-//			
-//			patientIds2 = query2.list();
-//			
-//	
-//			
-//			if (patientIds2.size() == 0) {
-//				result.add(patientId);
-//			}
-//		}
+			SQLQuery query2 = sessionFactory.getCurrentSession().createSQLQuery("select distinct pg.patient_id from patient_program pg "
+					+ "inner join person pe on pg.patient_id = pe.person_id "
+					+ "inner join patient pa on pg.patient_id = pa.patient_id "
+					+ "inner join orders ord on pg.patient_id = ord.patient_id "
+					+ "where ord.concept_id IN ("
+					+ DrugOrderExportUtil.gpGetARVConceptIds()
+					+ ") and pg.voided = 0 and pe.voided = 0 and ord.voided = 0 "
+					+ "and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '"
+					+ df.format(endDate)
+					+ "'"
+					+ " and pg.patient_id="
+					+ patientId);
+			
+			log.info("gggggggggggggggggggggggggg "+query2.toString());
+			patientIds2 = query2.list();
+			
+	
+			
+			if (patientIds2.size() == 0) {
+				result.add(patientId);
+			}
+		}
 		
-		for (Integer patientId : patientIds1) {	
-//		if (isPatientOnProphylaxisOnly(patientId)) {
-			result.add(patientId);
-//		}
-	    }
-//		log.info("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaresult "+result.size());
+//		for (Integer patientId : patientIds1) {	
+////		if (isPatientOnProphylaxisOnly(patientId)) {
+//			result.add(patientId);
+////		}
+//	    }
+		log.info("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaresult "+result.size());
 		return result;
 	}
 	
@@ -525,8 +540,9 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		portionBuffer
 		        .append(" INNER JOIN patient_program pg on pg.patient_id=pa.patient_id AND pg.program_id=2   ");
 		portionBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id ");
-//		portionBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.getProphylaxisDrugConceptIdsStr() + ") ");
-		portionBuffer.append(" AND (o.concept_id = 916 or o.concept_id = 747 or o.concept_id = 92 ) ");
+		portionBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.getProphylaxisDrugConceptIdsStr() + ") ");
+		portionBuffer.append(" and o.discontinued=0 and pg.voided = 0 and ord.voided = 0 ");
+//		portionBuffer.append(" AND (o.concept_id = 916 or o.concept_id = 747 or o.concept_id = 92 ) ");
 //		portionBuffer.append(" AND o.voided=0 ");
 		
 		StringBuffer attribStr = new StringBuffer();
@@ -618,7 +634,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 		}
 		
-//		log.info("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq "+query.toString());
+//		log.info("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq "+strBuffer.toString());
 		query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 		
 		List<Object[]> records = query.list();
@@ -634,12 +650,34 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			patientStartedWhenMap.put(booleanValue, id);
 		}
 		List<Integer> patientIds = new ArrayList<Integer>();
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 		for (String key : patientStartedWhenMap.keySet()) {
 			if (key.charAt(0) == '1') {
 				Patient patient = Context.getPatientService().getPatient(patientStartedWhenMap.get(key));
 //				if (!patient.getVoided())
 					patientIds.add(patient.getPatientId());
 			}
+		}
+		List<Integer> newOnProphylaxisList=new ArrayList<Integer>();
+		for (Integer patientId : patientIds) {
+			
+			SQLQuery query2 = sessionFactory.getCurrentSession().createSQLQuery(
+					"select distinct pg.patient_id from patient_program pg "
+			                + "inner join person pe on pg.patient_id = pe.person_id "
+			                + "inner join patient pa on pg.patient_id = pa.patient_id "
+			                + "inner join orders ord on pg.patient_id = ord.patient_id "
+			                + " and ord.concept_id IN ("
+			                + DrugOrderExportUtil.gpGetARVConceptIds() + ") "
+			                + "and ord.discontinued=0 and pg.voided = 0 and pe.voided = 0 and ord.voided = 0 "
+			                + "and pa.voided = 0 and (cast(ord.start_date as DATE)) >= '" + df.format(startDate)
+			                + "' and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id=2 "
+			                + " and pg.date_enrolled <= '" + df.format(endDate) + "' and pg.patient_id="
+			                + patientId);
+			
+			List<Integer> patientIds2 = query2.list();
+			
+			if (patientIds2.size() == 0)
+				newOnProphylaxisList.add(patientId);
 		}
 		return patientIds;
 	}
@@ -780,6 +818,8 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		
 		SQLQuery query = null;
 		
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		
 
 		if (!gender.equals("") || minAge != null || maxAge != null || minBirthdate != null || maxBirthdate != null) {
 			if (startDate != null && endDate == null) {
@@ -800,27 +840,53 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
 				strBuffer.append(" group by o.patient_id ");
 				
+//				 query = sessionFactory.getCurrentSession().createSQLQuery("select distinct pg.patient_id from patient_program pg "
+//				        + "inner join person p on pg.patient_id = p.person_id "
+//				        + "inner join patient pa on pg.patient_id = pa.patient_id "
+//				        + "inner join orders ord on pg.patient_id = ord.patient_id "		
+//				        + "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate)  + " ')) "
+//				        + " and ord.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ") "
+//				        + " and pg.voided = 0 and p.voided = 0 and ord.voided = 0 "
+//				        + "and pa.voided = 0 and (cast(ord.start_date as DATE)) >= '" + df.format(startDate)
+//				        + "' and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id= 2" 
+//				        + " and pg.date_enrolled <= '" + df.format(endDate) + "' "
+//				        + patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate)
+//				        ); 
+//				
 				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 			}
 			if (startDate == null && endDate != null) {
-				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) <= ");
-				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false)");
-				strBuffer.append(" FROM orders o ");
-				strBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id ");
-				strBuffer
-				        .append(" INNER JOIN patient_program pg on pg.patient_id=pa.patient_id  ");
-				strBuffer.append(" INNER JOIN program pr on pr.program_id=pg.program_id AND pr.program_id = 2 ");
-				strBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id ");
-//				strBuffer.append(getQueryPortionForProphylaxis());
-//				strBuffer.append(" INNER JOIN drug drug on drug.drug_id=dro.drug_inventory_id ");
-				strBuffer.append(" AND o.concept_id in ("+DrugOrderExportUtil.gpGetARVConceptIds()+") ");
-				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0  ");
-				strBuffer.append(" INNER JOIN person p on o.patient_id = p.person_id AND  ");
-				strBuffer.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
-				strBuffer.append(" group by o.patient_id ");
+//				strBuffer.append("SELECT DISTINCT o.patient_id , ");
+//				strBuffer.append("IF((select min(o.start_date)) <= ");
+//				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false)");
+//				strBuffer.append(" FROM orders o ");
+//				strBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id ");
+//				strBuffer
+//				        .append(" INNER JOIN patient_program pg on pg.patient_id=pa.patient_id  ");
+//				strBuffer.append(" INNER JOIN program pr on pr.program_id=pg.program_id AND pr.program_id = 2 ");
+//				strBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id ");
+////				strBuffer.append(getQueryPortionForProphylaxis());
+////				strBuffer.append(" INNER JOIN drug drug on drug.drug_id=dro.drug_inventory_id ");
+//				strBuffer.append(" AND o.concept_id in ("+DrugOrderExportUtil.gpGetARVConceptIds()+") ");
+//				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0  ");
+//				strBuffer.append(" INNER JOIN person p on o.patient_id = p.person_id AND  ");
+//				strBuffer.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
+//				strBuffer.append(" group by o.patient_id ");
+//				
+//				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 				
-				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+				 query = sessionFactory.getCurrentSession().createSQLQuery("select distinct pg.patient_id from patient_program pg "
+					        + "inner join person p on pg.patient_id = p.person_id "
+					        + "inner join patient pa on pg.patient_id = pa.patient_id "
+					        + "inner join orders ord on pg.patient_id = ord.patient_id "		
+					        + "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate)  + " ')) "
+					        + " and ord.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ") "
+					        + " and pg.voided = 0 and p.voided = 0 and ord.voided = 0 "
+					        + "and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '" + df.format(endDate)
+					        + "' and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id= 2" 
+					        + " and pg.date_enrolled <= '" + df.format(endDate) + "' "
+					        + " AND "+patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate)
+					        );
 				
 			}
 			if (startDate != null && endDate != null) {
@@ -842,6 +908,19 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append(" group by o.patient_id ");
 				
 				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+//			
+//			 query = sessionFactory.getCurrentSession().createSQLQuery("select distinct pg.patient_id from patient_program pg "
+//				        + "inner join person p on pg.patient_id = p.person_id "
+//				        + "inner join patient pa on pg.patient_id = pa.patient_id "
+//				        + "inner join orders ord on pg.patient_id = ord.patient_id "		
+//				        + "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate)  + " ')) "
+//				        + " and ord.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ") "
+//				        + " and pg.voided = 0 and p.voided = 0 and ord.voided = 0 "
+//				        + "and pa.voided = 0 and (cast(ord.start_date as DATE)) BETWEEN '" + df.format(startDate)+"' AND '"+df.format(endDate)+"'"
+//				        + " and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id= 2" 
+//				        + " and pg.date_enrolled <= '" + df.format(endDate) + "' "
+//				        + patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate)
+//				        );
 			}
 			if (startDate == null && endDate == null) {
 				endDate=new Date();
@@ -863,6 +942,19 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append(" group by o.patient_id ");
 				
 				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+				
+//				 query = sessionFactory.getCurrentSession().createSQLQuery("select distinct pg.patient_id from patient_program pg "
+//					        + "inner join person p on pg.patient_id = p.person_id "
+//					        + "inner join patient pa on pg.patient_id = pa.patient_id "
+//					        + "inner join orders ord on pg.patient_id = ord.patient_id "		
+//					        + "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate)  + " ')) "
+//					        + " and ord.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ") "
+//					        + " and pg.voided = 0 and p.voided = 0 and ord.voided = 0 "
+//					        + "and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '" + df.format(endDate)
+//					        + "' and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id= 2" 
+//					        + " and pg.date_enrolled <= '" + df.format(endDate) + "' "
+//					        + patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate)
+//					        );
 			}
 		} else {
 			if (startDate != null && endDate == null) {
@@ -883,6 +975,17 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append(" group by o.patient_id");
 				
 				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+				
+//				 query = sessionFactory.getCurrentSession().createSQLQuery("select distinct pg.patient_id from patient_program pg "
+//					        + "inner join patient pa on pg.patient_id = pa.patient_id "
+//					        + "inner join orders ord on pg.patient_id = ord.patient_id "		
+//					        + "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate)  + " ')) "
+//					        + " and ord.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ") "
+//					        + " and pg.voided = 0 and ord.voided = 0 "
+//					        + "and pa.voided = 0 and (cast(ord.start_date as DATE)) >= '" + df.format(startDate)
+//					        + "' and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id= 2" 
+//					        + " and pg.date_enrolled <= '" + df.format(endDate) + "' "
+//					        );
 			}
 			if (startDate == null && endDate != null) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
@@ -901,6 +1004,17 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append(" group by o.patient_id");
 				
 				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+				
+//				 query = sessionFactory.getCurrentSession().createSQLQuery("select distinct pg.patient_id from patient_program pg "
+//					        + "inner join patient pa on pg.patient_id = pa.patient_id "
+//					        + "inner join orders ord on pg.patient_id = ord.patient_id "		
+//					        + "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate)  + " ')) "
+//					        + " and ord.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ") "
+//					        + " and pg.voided = 0 and ord.voided = 0 "
+//					        + "and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '" + df.format(endDate)
+//					        + "' and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id= 2" 
+//					        + " and pg.date_enrolled <= '" + df.format(endDate) + "' "
+//					        );
 			}
 			if (startDate != null && endDate != null) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
@@ -921,6 +1035,18 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				
 				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 				
+				
+//				 query = sessionFactory.getCurrentSession().createSQLQuery("select distinct pg.patient_id from patient_program pg "
+//					        + "inner join patient pa on pg.patient_id = pa.patient_id "
+//					        + "inner join orders ord on pg.patient_id = ord.patient_id "		
+//					        + "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate)  + " ')) "
+//					        + " and ord.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ") "
+//					        + " and pg.voided = 0 and ord.voided = 0 "
+//					        + "and pa.voided = 0 and (cast(ord.start_date as DATE)) BETWEEN '" + df.format(startDate)+"' AND '"+df.format(endDate)+"'"
+//					        + " and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id= 2" 
+//					        + " and pg.date_enrolled <= '" + df.format(endDate) + "' "
+//					        );
+				
 			}
 			if (startDate == null && endDate == null) {
 				endDate=new Date();
@@ -939,10 +1065,24 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				strBuffer.append(" group by o.patient_id");
 				
 				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+				
+//				 query = sessionFactory.getCurrentSession().createSQLQuery("select distinct pg.patient_id from patient_program pg "
+//					        + "inner join person p on pg.patient_id = p.person_id "
+//					        + "inner join patient pa on pg.patient_id = pa.patient_id "
+//					        + "inner join orders ord on pg.patient_id = ord.patient_id "		
+//					        + "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate)  + " ')) "
+//					        + " and ord.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ") "
+//					        + " and pg.voided = 0 and ord.voided = 0 "
+//					        + "and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '" + df.format(endDate)
+//					        + "' and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id= 2" 
+//					        + " and pg.date_enrolled <= '" + df.format(endDate) + "' AND "
+//					        + patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate)
+//					        );
 			}
+			
 		}
 		
-//		log.info("ddddddddddddddddddddddddddddddddddddddddddddddddddddddddd "+strBuffer.toString());
+
 		
 		List<Object[]> records = query.list();
 		
@@ -965,7 +1105,9 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 			
 		}
-		
+//		List<Integer> patientIds = query.list();
+
+	
 		return patientIds;
 	}
 	
@@ -976,19 +1118,34 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 	 */
 	@SuppressWarnings("unchecked")
     @Override
-	public List<Integer> getPatientsExitedFromCare() {
+	public List<Integer> getPatientsExitedFromCare(Date endDate) {
 		List<Integer> patientsExitedIds = null;
-		try {
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		
+		StringBuffer queryPortion = new StringBuffer();
+		
+		if(endDate==null)
+			endDate=new Date();
+		
+//		try {
 			Session session = sessionFactory.getCurrentSession();
 			SQLQuery patientsExitedFromCare = session.createSQLQuery("SELECT distinct pa.patient_id FROM patient pa "
 			        + "INNER JOIN person pe ON pa.patient_id = pe.person_id "
-			        + "INNER JOIN obs ob ON ob.person_id = pe.person_id WHERE ob.concept_id = 1811 and ob.voided=0 ");
+					+" INNER JOIN patient_program pg ON pg.patient_id = pa.patient_id   "
+			        + "INNER JOIN obs ob ON ob.person_id = pe.person_id WHERE ob.concept_id = 1811 and ob.obs_datetime< '"+df.format(endDate)+"' and ob.voided=0 and pg.voided=0 and pe.voided=0 and ob.voided=0 and pa.voided=0 "
+			        + " AND ((pg.date_completed is null) or(cast(pg.date_completed as DATE)< ' " + df.format(endDate) + " ')) "
+			        );
+			
+
+    		
+    		SQLQuery query = sessionFactory.getCurrentSession().createSQLQuery(queryPortion.toString());
+    		
 			patientsExitedIds = patientsExitedFromCare.list();
 			
-		}
-		catch (Exception e) {
-
-		}
+//		}
+//		catch (Exception e) {
+//
+//		}
 		
 		return patientsExitedIds;
 	}
@@ -1895,8 +2052,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		
 		if (val.equals("any")) {
 			if (gender.equals("") && minAge == null && maxAge == null && minBirthdate == null && maxBirthdate == null) {
-				
-				
+				 
 				strBuffer.append("SELECT DISTINCT o.patient_id FROM orders o   ");
 				strBuffer.append(" INNER JOIN patient pat on pat.patient_id=o.patient_id   ");
 				strBuffer.append(" INNER JOIN patient_program pg on pg.patient_id=pat.patient_id  ");
@@ -1998,6 +2154,9 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		return records;
 		
 	}
+       
+	
+	
 	//==========================================================================================================================================
 	/**
 	 * gives patients currently taking all selected drugs
@@ -2473,7 +2632,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //				        || ((maxReturnVisitDay.getTime()) >= threeMonthsBeforeEndDate.getTime() && (maxReturnVisitDay
 //				                .getTime()) <= endDate.getTime())) {
 					
-					if (!getPatientsExitedFromCare().contains(patientId)){
+					if (!getPatientsExitedFromCare(endDate).contains(patientId)){
 //					if(!isAllDrugsStopped(Context.getPatientService().getPatient(patientId)))
 //								if(!patsCompletedHIVProgramList.contains(patientId))
 								activePreARTPatients.add(patientId);
@@ -2580,9 +2739,9 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
     	
     	if (gender.equals("") && minAge == null && maxAge == null && minBirthdate == null && maxBirthdate == null){
     		queryPortion.append(" SELECT DISTINCT o.patient_id FROM orders o ");
-    		queryPortion.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id  ");
-    		queryPortion.append( service.checkInputDate(startDate, endDate));
+//    		queryPortion.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id  ");
     		queryPortion.append(" INNER JOIN patient pat on pat.patient_id=o.patient_id ");
+    		queryPortion.append( service.checkInputDate(startDate, endDate));
     		queryPortion.append(" INNER JOIN patient_program pg on pat.patient_id=pg.patient_id ");
     		queryPortion.append(" INNER JOIN program gr on gr.program_id=pg.program_id AND gr.program_id = 2 ");
     		queryPortion.append(" AND o.concept_id in( "+categoryConceptId+") ");
@@ -2590,9 +2749,9 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
     	}
     	else{
     		queryPortion.append(" SELECT DISTINCT o.patient_id FROM orders o ");
-    		queryPortion.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id  ");
-    		queryPortion.append(service.checkInputDate(startDate, endDate));
+//    		queryPortion.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id  ");
     		queryPortion.append(" INNER JOIN patient pat on pat.patient_id=o.patient_id ");
+    		queryPortion.append(service.checkInputDate(startDate, endDate));
     		queryPortion.append(" INNER JOIN patient_program pg on pat.patient_id=pg.patient_id ");
     		queryPortion.append(" INNER JOIN program gr on gr.program_id=pg.program_id AND gr.program_id =2 ");
     		queryPortion.append(" AND o.concept_id in( "+categoryConceptId+") ");
@@ -2772,6 +2931,354 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		}
 				return found;
 	}
+
+	@Override
+	public List<Integer> getPatientsOnRegimenCategoryActive(
+			String categoryConceptId, Date startDate, Date endDate,
+			String gender, Date minAge, Date maxAge, Date minBirthdate,
+			Date maxBirthdate) {
+		
+		StringBuffer queryPortion = new StringBuffer();
+		
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+    	
+    	List<Integer> patientIds = new ArrayList<Integer>();
+
+    	DrugOrderService service = Context.getService(DrugOrderService.class);
+    	
+    	if (gender.equals("") && minAge == null && maxAge == null && minBirthdate == null && maxBirthdate == null){
+//    		queryPortion.append(" SELECT DISTINCT o.patient_id FROM orders o ");
+////    		queryPortion.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id  ");
+//    		queryPortion.append(" INNER JOIN patient pat on pat.patient_id=o.patient_id ");
+//    		queryPortion.append( service.checkInputDate(startDate, endDate));
+//    		queryPortion.append(" INNER JOIN patient_program pg on pat.patient_id=pg.patient_id ");
+//    		queryPortion.append(" INNER JOIN program gr on gr.program_id=pg.program_id AND gr.program_id = 2 ");
+//    		queryPortion.append(" AND o.concept_id in( "+categoryConceptId+") ");
+////    		queryPortion.append(" AND o.voided=0 AND pat.voided=0 AND pg.voided=0 ");
+    		
+    		queryPortion.append(" select distinct pg.patient_id from patient_program pg ");
+    		queryPortion.append( "inner join person pe on pg.patient_id = pe.person_id ");
+    		queryPortion.append( "inner join patient pa on pg.patient_id = pa.patient_id ");
+    		queryPortion.append("inner join orders ord on pg.patient_id = ord.patient_id ");
+    		queryPortion.append( "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate) + " ')) "	);	      
+	       
+    		queryPortion.append( " and ord.concept_id IN (" + categoryConceptId);
+    		queryPortion.append( ") and pg.voided = 0 and pe.voided = 0 and ord.voided = 0 ");
+    		queryPortion.append("and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id=2 ");
+    		queryPortion.append( " and pg.date_enrolled <= '" + df.format(endDate) + "'");
+    	}
+    	else{
+//    		queryPortion.append(" SELECT DISTINCT o.patient_id FROM orders o ");
+////    		queryPortion.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id  ");
+//    		queryPortion.append(" INNER JOIN patient pat on pat.patient_id=o.patient_id ");
+//    		queryPortion.append(service.checkInputDate(startDate, endDate));
+//    		queryPortion.append(" INNER JOIN patient_program pg on pat.patient_id=pg.patient_id ");
+//    		queryPortion.append(" INNER JOIN program gr on gr.program_id=pg.program_id AND gr.program_id =2 ");
+//    		queryPortion.append(" AND o.concept_id in( "+categoryConceptId+") ");
+////    		queryPortion.append(" AND o.voided=0 AND pat.voided=0 AND pg.voided=0 ");
+//    		queryPortion.append(" INNER JOIN person p on o.patient_id = p.person_id AND  ");
+//    		queryPortion.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
+//    		
+    		queryPortion.append(" select distinct pg.patient_id from patient_program pg ");
+    		queryPortion.append( "inner join person pe on pg.patient_id = pe.person_id ");
+    		queryPortion.append( "inner join patient pa on pg.patient_id = pa.patient_id ");
+    		queryPortion.append("inner join orders ord on pg.patient_id = ord.patient_id ");
+	        // + "inner join drug_order do on ord.order_id = do.order_id "
+	        //+ "inner join drug d on do.drug_inventory_id = d.drug_id "
+    		queryPortion.append( "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate) + " ')) "	);	      
+    		queryPortion.append( ") " + " and ord.concept_id IN (" + categoryConceptId);
+    		queryPortion.append( ") and pg.voided = 0 and pe.voided = 0 and ord.voided = 0 ");
+    		queryPortion.append("and pa.voided = 0 and (cast(ord.start_date as DATE)) <= categoryConceptId'" + df.format(endDate) + "' and pg.program_id= 2");
+    		queryPortion.append( " and pg.date_enrolled <= '" + df.format(endDate) + "'");
+    		queryPortion.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
+    	}
+
+    		SQLQuery query = sessionFactory.getCurrentSession().createSQLQuery(queryPortion.toString());
+    		
+//    		log.info("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww "+query.toString());
+    			
+    		patientIds = query.list();
+
+    		return patientIds;
+	}
+
+	@Override
+	
+	public List<Integer> searchDrugOrderByDrugActive(String anyOrAll, 
+			Date startdate, Date enddate, List<Drug> drugs, String gender,
+			Date minAge, Date maxAge, Date minBirthdate, Date maxBirthdate) {
+		List<Integer> patientOnDrugs = null;
+		
+		List<Drug> allDrugs = new ArrayList<Drug>();
+		List<Object[]> allDrugsObj = new ArrayList<Object[]>();
+		
+		ArrayList<Integer> drugsConceptsId = new ArrayList<Integer>();
+		DrugOrderService service = Context.getService(DrugOrderService.class);
+		
+		if (enddate == null) {
+			enddate = new Date();
+		}
+		
+		for (Drug drug : drugs) {
+			drugsConceptsId.add(drug.getConcept().getConceptId());
+		}
+		
+		if (drugsConceptsId.size() != 0) {
+			if (anyOrAll.equals("any")) {
+				patientOnDrugs = getQueryResultByConcept(drugsConceptsId, "any", startdate, enddate, gender, minAge, maxAge, minBirthdate,
+				    maxBirthdate);
+
+			}
+			if (anyOrAll.equals("none")) {
+				patientOnDrugs = getQueryResultByConcept(drugsConceptsId, "none", startdate, enddate, gender, minAge, maxAge,
+				    minBirthdate, maxBirthdate);
+
+			}
+			if (anyOrAll.equals("all")) {
+				patientOnDrugs = getQueryResultByConcept(drugsConceptsId, "all", startdate, enddate, gender, minAge, maxAge, minBirthdate,
+				    maxBirthdate);
+
+				
+			}
+		} // else select any patient on any of HIV drugs
+		else {
+			allDrugsObj = service.getArvDrugsByConcepts();
+			for (Object[] obj : allDrugsObj) {
+				allDrugs.add(Context.getConceptService().getDrug((Integer) obj[0]));
+			}
+			for (Drug d : allDrugs) {
+				if(d!=null)
+				drugsConceptsId.add(d.getConcept().getConceptId());
+			}
+//			drugIdList = (ArrayList<Integer>) DrugOrderExportUtil.gpGetARVDrugIds();
+			if(anyOrAll.equals("any"))
+			patientOnDrugs = getQueryResultByConcept(drugsConceptsId, "any", startdate, enddate, gender, minAge, maxAge, minBirthdate,
+			    maxBirthdate);
+			else if(anyOrAll.equals("all"))
+				patientOnDrugs = getQueryResultByConcept(drugsConceptsId, "all", startdate, enddate, gender, minAge, maxAge, minBirthdate,
+				    maxBirthdate);
+			else if(anyOrAll.equals("none"))
+				patientOnDrugs = getQueryResultByConcept(drugsConceptsId, "none", startdate, enddate, gender, minAge, maxAge, minBirthdate,
+				    maxBirthdate);
+		}
+
+		return patientOnDrugs;
+	}
+
+	
+	   public List<Integer> getQueryResultByConceptActive(ArrayList<Integer> listDrugsConceptsIds, String val, Date startDate, Date endDate,
+			           String gender, Date minAge, Date maxAge, Date minBirthdate, Date maxBirthdate) {
+			SQLQuery query = null;
+			
+			List<Integer> records = null;
+			StringBuffer strBuffer = new StringBuffer();
+			
+			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+			
+			if (val.equals("any")) {
+			if (gender.equals("") && minAge == null && maxAge == null && minBirthdate == null && maxBirthdate == null) {
+			
+//			strBuffer.append("SELECT DISTINCT o.patient_id FROM orders o   ");
+//			strBuffer.append(" INNER JOIN patient pat on pat.patient_id=o.patient_id   ");
+//			strBuffer.append(" INNER JOIN patient_program pg on pg.patient_id=pat.patient_id  ");
+//			strBuffer.append(" INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
+//			strBuffer.append(" AND o.voided=0 AND pat.voided=0 AND pg.voided=0 ");
+//			strBuffer.append( checkInputDate(startDate, endDate));  
+//			strBuffer.append(" AND o.concept_id IN (" + getStringFromIds(listDrugsConceptsIds) + ")");
+//			strBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ")");
+			
+			
+			
+			strBuffer.append(" select distinct pg.patient_id from patient_program pg ");
+			strBuffer.append( "inner join person pe on pg.patient_id = pe.person_id ");
+			strBuffer.append( "inner join patient pa on pg.patient_id = pa.patient_id ");
+			strBuffer.append("inner join orders ord on pg.patient_id = ord.patient_id ");
+			strBuffer.append( "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate) + " ')) "	);	      
+	       
+    		strBuffer.append(" AND o.concept_id IN (" + getStringFromIds(listDrugsConceptsIds) + ")");
+    		strBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ")");
+    		strBuffer.append( " and pg.voided = 0 and pe.voided = 0 and ord.voided = 0 ");
+    		strBuffer.append("and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id=2 ");
+    		strBuffer.append( " and pg.date_enrolled <= '" + df.format(endDate) + "'");
+			
+			} else {
+			
+//			strBuffer.append("SELECT DISTINCT o.patient_id FROM orders o   ");
+//			strBuffer.append(" INNER JOIN patient t on t.patient_id=o.patient_id   ");
+//			strBuffer.append(" INNER JOIN person p on p.person_id=t.patient_id   ");
+//			strBuffer.append(" INNER JOIN patient_program pg on pg.patient_id=t.patient_id");
+//			strBuffer.append(" INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2  ");
+//			strBuffer.append(" AND o.voided=0 AND t.voided=0 AND pg.voided=0 ");
+//			strBuffer.append( checkInputDate(startDate, endDate));
+//			strBuffer.append(" AND o.concept_id IN (" + getStringFromIds(listDrugsConceptsIds) + ")");
+//			strBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ") AND ");
+//			strBuffer.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
+			
+				strBuffer.append(" select distinct pg.patient_id from patient_program pg ");
+				strBuffer.append( "inner join person pe on pg.patient_id = pe.person_id ");
+				strBuffer.append( "inner join patient pa on pg.patient_id = pa.patient_id ");
+				strBuffer.append("inner join orders ord on pg.patient_id = ord.patient_id ");
+				strBuffer.append( "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate) + " ')) "	);	     
+	    		strBuffer.append(" AND o.concept_id IN (" + getStringFromIds(listDrugsConceptsIds) + ")");
+	    		strBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ")");
+	    		strBuffer.append( " and pg.voided = 0 and pe.voided = 0 and ord.voided = 0 ");
+	    		strBuffer.append("and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id=2 ");
+	    		strBuffer.append( " and pg.date_enrolled <= '" + df.format(endDate) + "' ");
+	    		strBuffer.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
+			
+			}
+			
+			
+			query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+			
+			records = query.list();
+			
+			} else if (val.equals("none")) {
+			if (gender.equals("") && minAge == null && maxAge == null && minBirthdate == null && maxBirthdate == null) {
+			
+			strBuffer.append("SELECT DISTINCT pt.patient_id from patient pt ");
+			strBuffer.append(" INNER JOIN orders os on os.patient_id = pt.patient_id and pt.voided=0 and pt.patient_id NOT IN( ");
+			strBuffer.append(" select distinct pg.patient_id from patient_program pg ");
+			strBuffer.append( "inner join person pe on pg.patient_id = pe.person_id ");
+			strBuffer.append( "inner join patient pa on pg.patient_id = pa.patient_id ");
+			strBuffer.append("inner join orders ord on pg.patient_id = ord.patient_id ");
+			strBuffer.append( "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate) + " ')) "	);	      
+	       
+    		strBuffer.append(" AND o.concept_id IN (" + getStringFromIds(listDrugsConceptsIds) + ")");
+    		strBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ")");
+    		strBuffer.append( " and pg.voided = 0 and pe.voided = 0 and ord.voided = 0 ");
+    		strBuffer.append("and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id=2 ");
+    		strBuffer.append( " and pg.date_enrolled <= '" + df.format(endDate) + "'");
+			strBuffer.append(")");
+			
+			
+			query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+			
+			} else {
+			strBuffer.append("SELECT DISTINCT pt.patient_id from patient pt ");
+			strBuffer.append(" INNER JOIN orders os on os.patient_id = pt.patient_id and pt.voided=0 and pt.patient_id NOT IN( ");
+			strBuffer.append(" select distinct pg.patient_id from patient_program pg ");
+			strBuffer.append( "inner join person pe on pg.patient_id = pe.person_id ");
+			strBuffer.append( "inner join patient pa on pg.patient_id = pa.patient_id ");
+			strBuffer.append("inner join orders ord on pg.patient_id = ord.patient_id ");
+			strBuffer.append( "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate) + " ')) "	);	      
+	       
+    		strBuffer.append(" AND o.concept_id IN (" + getStringFromIds(listDrugsConceptsIds) + ")");
+    		strBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ")");
+    		strBuffer.append( " and pg.voided = 0 and pe.voided = 0 and ord.voided = 0 ");
+    		strBuffer.append("and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id=2 ");
+    		strBuffer.append( " and pg.date_enrolled <= '" + df.format(endDate) + "'");
+			strBuffer.append(" AND pt.patient_id IN(SELECT p.person_id FROM person p WHERE ");
+			strBuffer.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate) + ")" );
+			strBuffer.append(")");
+			
+			
+			query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+			
+			}
+			
+			records = query.list();
+			
+			} else if (val.equals("all")) {
+			if (gender.equals("") && minAge == null && maxAge == null && minBirthdate == null && maxBirthdate == null) {
+//			strBuffer.append("SELECT DISTINCT o.patient_id FROM orders o WHERE o.patient_id in(" );
+//			strBuffer.append("SELECT DISTINCT p.patient_id FROM patient p ");
+//			strBuffer.append(" INNER JOIN program gr INNER JOIN patient_program pg on pg.patient_id=p.patient_id and gr.program_id=2 ");
+//			strBuffer.append("INNER JOIN orders o ON p.patient_id = o.patient_id AND o.voided=0 AND p.voided=0 ");
+//			strBuffer.append( checkInputDate(startDate, endDate));
+//			strBuffer.append(" AND o.concept_id IN (" + getStringFromIds(listDrugsConceptsIds) + ")");
+//			strBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + "))");
+				
+				strBuffer.append(" select distinct pg.patient_id from patient_program pg ");
+				strBuffer.append( "inner join person pe on pg.patient_id = pe.person_id ");
+				strBuffer.append( "inner join patient pa on pg.patient_id = pa.patient_id ");
+				strBuffer.append("inner join orders ord on pg.patient_id = ord.patient_id ");
+				strBuffer.append( "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate) + " ')) "	);	      
+		       
+	    		strBuffer.append(" AND o.concept_id IN (" + getStringFromIds(listDrugsConceptsIds) + ")");
+	    		strBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ")");
+	    		strBuffer.append( " and pg.voided = 0 and pe.voided = 0 and ord.voided = 0 ");
+	    		strBuffer.append("and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id=2 ");
+	    		strBuffer.append( " and pg.date_enrolled <= '" + df.format(endDate) + "'");
+			
+			query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+			
+			} else {
+			
+//			strBuffer.append("SELECT DISTINCT o.patient_id FROM orders o WHERE o.patient_id IN(" );
+//			strBuffer.append(" SELECT DISTINCT p.patient_id FROM patient p ");
+//			strBuffer.append(" INNER JOIN program gr INNER JOIN patient_program pg on pg.patient_id=p.patient_id and gr.program_id=2   ");
+//			strBuffer.append(" INNER JOIN orders o ON p.patient_id = o.patient_id AND o.voided=0 AND p.voided=0  ");
+//			strBuffer.append( checkInputDate(startDate, endDate));
+//			strBuffer.append(" AND o.concept_id IN (" + getStringFromIds(listDrugsConceptsIds) + ")");
+//			strBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ")");
+//			strBuffer.append(" AND o.patient_id in(SELECT  DISTINCT p.patient_id FROM patient p WHERE p.patient_id  ");
+//			strBuffer.append("IN(SELECT p.person_id FROM person p WHERE ");
+//			strBuffer.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate) + ")))");
+				
+				strBuffer.append(" select distinct pg.patient_id from patient_program pg ");
+				strBuffer.append( "inner join person pe on pg.patient_id = pe.person_id ");
+				strBuffer.append( "inner join patient pa on pg.patient_id = pa.patient_id ");
+				strBuffer.append("inner join orders ord on pg.patient_id = ord.patient_id ");
+				strBuffer.append( "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate) + " ')) "	);	      
+		       
+	    		strBuffer.append(" AND o.concept_id IN (" + getStringFromIds(listDrugsConceptsIds) + ")");
+	    		strBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ")");
+	    		strBuffer.append( " and pg.voided = 0 and pe.voided = 0 and ord.voided = 0 ");
+	    		strBuffer.append("and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id=2 ");
+	    		strBuffer.append( " and pg.date_enrolled <= '" + df.format(endDate) + "'");
+	    		strBuffer.append(" AND o.patient_id in(SELECT  DISTINCT p.patient_id FROM patient p WHERE p.patient_id  ");
+				strBuffer.append("IN(SELECT p.person_id FROM person p WHERE ");
+				strBuffer.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate) + ")))");
+			
+			
+			query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+			}
+			
+			
+			List<Integer> patientIds = query.list();
+			
+			records = getPatientOnAllDrugsByConceptIds(listDrugsConceptsIds, patientIds);
+			
+			}
+			
+			return records;
+			
+			}
+
+
+	@Override
+	public List<Integer> getActiveOnDrugsPatients(List<Integer> patients,String list,Date endDate) {
+		Session session = getSessionFactory().getCurrentSession();
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		SQLQuery query = session.createSQLQuery("select distinct pg.patient_id from patient_program pg "
+				+ "inner join person pe on pg.patient_id = pe.person_id "
+				+ "inner join patient pa on pg.patient_id = pa.patient_id "
+				+ "inner join orders ord on pg.patient_id = ord.patient_id "
+				+ "where ((pg.date_completed is null) or (pg.date_completed > '" + df.format(endDate)	+ "'))"
+		        + " and ord.concept_id IN ("
+		        + list
+		        + ") and pg.voided = 0 and pe.voided = 0 and ord.voided = 0 "
+		        + " and pg.date_enrolled <= '" + df.format(endDate)
+		        + "' and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '" + df.format(endDate)
+		        + "' and pg.program_id= 2 ");
+		List<Integer> activePatients = query.list();
+		List<Integer> res = new ArrayList<Integer>();
+		for (Integer id : activePatients) {
+			if(patients.contains(id))
+				res.add(id);
+		}
+		return res;
+	}
+
+	@Override
+	public List<Integer> getPatientsOnFirstLineRegActive(Date startdate,
+			Date enddate, String gender, Date minAge, Date maxAge,
+			Date minBirthdate, Date maxBirthdate) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 	
 	

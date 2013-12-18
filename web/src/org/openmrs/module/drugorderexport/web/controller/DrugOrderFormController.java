@@ -166,6 +166,8 @@ public class DrugOrderFormController extends ParameterizableViewController {
 			Date endDate = null;
 			
 			DrugOrderControllerMessage message = new DrugOrderControllerMessage();
+			String arvConceptIds = DrugOrderExportUtil.gpGetARVConceptIds();
+			String arvDrugIds = DrugOrderExportUtil.gpGetARVDrugsIds();
 			/*
 			 * Data validation
 			 */
@@ -197,8 +199,12 @@ public class DrugOrderFormController extends ParameterizableViewController {
 					    gender, minAge, maxAge, minBirthdate, maxBirthdate);
 					
 					if (checkedValue == 1){
-						patientIds = service.getActivePatients(service.searchDrugOrderByDrug(anyOrAll, startDate, endDate, service
-						        .getListOfDrugsByIds(drugIds), gender, minAge, maxAge, minBirthdate, maxBirthdate), endDate);
+//						patientIds = service.getActivePatients(service.searchDrugOrderByDrug(anyOrAll, startDate, endDate, service
+//						        .getListOfDrugsByIds(drugIds), gender, minAge, maxAge, minBirthdate, maxBirthdate), endDate);
+						
+						patientIds = service.getActiveOnDrugsPatients(service.searchDrugOrderByDrug(anyOrAll, startDate, endDate, service
+						        .getListOfDrugsByIds(drugIds), gender, minAge, maxAge, minBirthdate, maxBirthdate),arvDrugIds, endDate);
+
 					}
 			}
 			else if(rdBtn.equals("concepts")){
@@ -206,9 +212,9 @@ public class DrugOrderFormController extends ParameterizableViewController {
 					    gender, minAge, maxAge, minBirthdate, maxBirthdate);
 
 					if (checkedValue == 1){
-						patientIds = service.getActivePatients(service.searchDrugOrderByDrugsConcepts
+						patientIds = service.getActiveOnDrugsPatients(service.searchDrugOrderByDrugsConcepts
 								(anyOrAll, startDate, endDate, service.getListOfDrugsByConceptsIds(drugsByConceptsIds),
-							    gender, minAge, maxAge, minBirthdate, maxBirthdate), endDate);
+							    gender, minAge, maxAge, minBirthdate, maxBirthdate),arvConceptIds, endDate);
 					}
 			}
 			

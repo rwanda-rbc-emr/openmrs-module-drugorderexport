@@ -67,13 +67,13 @@ public class ProphylaxisPatientController extends ParameterizableViewController 
 			
 			List<Integer> patients = new ArrayList<Integer>();
 			
-			List<Integer> patientsList= service.getAllProphylaxisPatients(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
+			patients= service.getAllProphylaxisPatients(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
 			
-			for(Integer id:patientsList){
-				if(service.isPatientOnProphylaxisOnlyBeforePeriod(id, endDate))
-					patients.add(id);
-			}
-		
+//			for(Integer id:patientsList){
+//				if(service.isPatientOnProphylaxisOnlyBeforePeriod(id, endDate))
+//					patients.add(id);
+//			}
+		log.info("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb "+patients.size());
 			if (checkedValue == 1) {
 				patients = service.getActivePreARTPatients(patients, endDate);
 			}
@@ -130,6 +130,8 @@ public class ProphylaxisPatientController extends ParameterizableViewController 
 			map.put("objectsList", objectsList);
 			map.put("collectionSize", objectsList.size());
 			map.put("checkedValueExport", checkedValue);
+			
+			
 			
 			Date now = new Date();
 			if (startDate != null)

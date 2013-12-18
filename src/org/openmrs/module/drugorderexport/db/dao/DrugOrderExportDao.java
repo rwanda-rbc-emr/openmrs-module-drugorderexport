@@ -257,7 +257,7 @@ public interface DrugOrderExportDao {
 	/**
 	 * gives patients exited from care
 	 */
-	public List<Integer> getPatientsExitedFromCare();
+	public List<Integer> getPatientsExitedFromCare(Date endDate);
 	
 	/**
 	 * gives prophylaxis ids
@@ -422,4 +422,16 @@ public interface DrugOrderExportDao {
 	 public Boolean isLastRegimenProphy(Patient p);
 	 
 	 public boolean isPatientOnProphylaxisOnlyBeforePeriod(Integer patientId,Date enddate);
+	 
+	 public List<Integer> getPatientsOnRegimenCategoryActive(String categoryConceptId, Date startDate, Date endDate,
+	         String gender, Date minAge, Date maxAge, Date minBirthdate,
+	         Date maxBirthdate);
+	 
+	 public List<Integer> searchDrugOrderByDrugActive(String anyOrAll, Date startdate, Date enddate, List<Drug> drugs,
+             String gender, Date minAge, Date maxAge, Date minBirthdate, Date maxBirthdate);
+	 
+	 public List<Integer> getPatientsOnFirstLineRegActive(Date startdate, Date enddate, String gender, Date minAge, Date maxAge,
+             Date minBirthdate, Date maxBirthdate) ;
+	 
+	 public List<Integer> getActiveOnDrugsPatients(List<Integer> patients,String list,Date endDate);
 }

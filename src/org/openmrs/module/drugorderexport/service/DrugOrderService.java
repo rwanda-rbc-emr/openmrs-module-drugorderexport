@@ -77,7 +77,7 @@ public interface DrugOrderService {
 	public List<String> getAllPatientObsList(Patient p, Concept c);
 	
 	
-	public List<Integer> getPatientsExitedFromCare();
+	public List<Integer> getPatientsExitedFromCare(Date endDate);
 	
 	public List<Integer> getProphylaxisDrugsIds();
 	
@@ -130,5 +130,16 @@ public interface DrugOrderService {
 	 
 	 public boolean isPatientOnProphylaxisOnlyBeforePeriod(Integer patientId,Date enddate);
 	 
+	 public List<Integer> getPatientsOnRegimenCategoryActive(String categoryConceptId, Date startDate, Date endDate,
+	         String gender, Date minAge, Date maxAge, Date minBirthdate,
+	         Date maxBirthdate);
+	 
+	 public List<Integer> searchDrugOrderByDrugActive(String anyOrAll, Date startdate, Date enddate, List<Drug> drugs,
+             String gender, Date minAge, Date maxAge, Date minBirthdate, Date maxBirthdate);
+	 
+	 public List<Integer> getPatientsOnFirstLineRegActive(Date startdate, Date enddate, String gender, Date minAge, Date maxAge,
+             Date minBirthdate, Date maxBirthdate) ;
+	 
+	 public List<Integer> getActiveOnDrugsPatients(List<Integer> patients,String list,Date endDate);
 	
 }
