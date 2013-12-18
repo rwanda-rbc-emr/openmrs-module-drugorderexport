@@ -2,7 +2,7 @@
 <!-- ********************************************************* -->
 <!-- ** HIV Drugs Reporting                                 ** -->
 <!-- **	                                                    ** -->
-<!-- ** @author   Mariam N.                                 ** -->
+<!-- ** @author   RWANDA MOH                                 ** -->
 <!-- ** @version 1.0                                        ** -->
 <!-- ********************************************************* -->
 <project name="drugorderexport" default="package-module">

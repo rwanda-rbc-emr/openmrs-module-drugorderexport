@@ -462,7 +462,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //			result.add(patientId);
 ////		}
 //	    }
-		log.info("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaresult "+result.size());
+//		log.info("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaresult "+result.size());
 		return result;
 	}
 	
@@ -534,6 +534,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		
 		StringBuffer portionBuffer = new StringBuffer();
 		
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 		
 		portionBuffer.append(" FROM orders o  ");
 		portionBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id  ");
@@ -541,7 +542,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		        .append(" INNER JOIN patient_program pg on pg.patient_id=pa.patient_id AND pg.program_id=2   ");
 		portionBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id ");
 		portionBuffer.append(" AND o.concept_id IN (" + DrugOrderExportUtil.getProphylaxisDrugConceptIdsStr() + ") ");
-		portionBuffer.append(" and o.discontinued=0 and pg.voided = 0 and ord.voided = 0 ");
+		portionBuffer.append(" and o.discontinued=0 and pg.voided = 0 and o.voided = 0 and pg.date_enrolled <= '" + df.format(endDate) + "'"); 
 //		portionBuffer.append(" AND (o.concept_id = 916 or o.concept_id = 747 or o.concept_id = 92 ) ");
 //		portionBuffer.append(" AND o.voided=0 ");
 		
@@ -650,7 +651,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			patientStartedWhenMap.put(booleanValue, id);
 		}
 		List<Integer> patientIds = new ArrayList<Integer>();
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+
 		for (String key : patientStartedWhenMap.keySet()) {
 			if (key.charAt(0) == '1') {
 				Patient patient = Context.getPatientService().getPatient(patientStartedWhenMap.get(key));
@@ -679,7 +680,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			if (patientIds2.size() == 0)
 				newOnProphylaxisList.add(patientId);
 		}
-		return patientIds;
+		return newOnProphylaxisList;
 	}
 	
 	//==========================================================================================================================================
@@ -835,7 +836,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //				strBuffer.append(" INNER JOIN drug drug on drug.drug_id=dro.drug_inventory_id  ");
 				strBuffer.append(" AND o.concept_id in ("+DrugOrderExportUtil.gpGetARVConceptIds()+") ");
 //				strBuffer.append(getQueryPortionForProphylaxis());
-				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0  ");
+				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0 and pg.date_enrolled <= '" + df.format(endDate) + "'  ");
 				strBuffer.append(" INNER JOIN person p on o.patient_id = p.person_id AND  ");
 				strBuffer.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
 				strBuffer.append(" group by o.patient_id ");
@@ -856,37 +857,37 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
 			}
 			if (startDate == null && endDate != null) {
-//				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-//				strBuffer.append("IF((select min(o.start_date)) <= ");
-//				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false)");
-//				strBuffer.append(" FROM orders o ");
-//				strBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id ");
-//				strBuffer
-//				        .append(" INNER JOIN patient_program pg on pg.patient_id=pa.patient_id  ");
-//				strBuffer.append(" INNER JOIN program pr on pr.program_id=pg.program_id AND pr.program_id = 2 ");
-//				strBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id ");
-////				strBuffer.append(getQueryPortionForProphylaxis());
-////				strBuffer.append(" INNER JOIN drug drug on drug.drug_id=dro.drug_inventory_id ");
-//				strBuffer.append(" AND o.concept_id in ("+DrugOrderExportUtil.gpGetARVConceptIds()+") ");
-//				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0  ");
-//				strBuffer.append(" INNER JOIN person p on o.patient_id = p.person_id AND  ");
-//				strBuffer.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
-//				strBuffer.append(" group by o.patient_id ");
-//				
-//				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+				strBuffer.append("SELECT DISTINCT o.patient_id , ");
+				strBuffer.append("IF((select min(o.start_date)) <= ");
+				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false)");
+				strBuffer.append(" FROM orders o ");
+				strBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id ");
+				strBuffer
+				        .append(" INNER JOIN patient_program pg on pg.patient_id=pa.patient_id  ");
+				strBuffer.append(" INNER JOIN program pr on pr.program_id=pg.program_id AND pr.program_id = 2 ");
+				strBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id ");
+//				strBuffer.append(getQueryPortionForProphylaxis());
+//				strBuffer.append(" INNER JOIN drug drug on drug.drug_id=dro.drug_inventory_id ");
+				strBuffer.append(" AND o.concept_id in ("+DrugOrderExportUtil.gpGetARVConceptIds()+") ");
+				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0  and pg.date_enrolled <= '" + df.format(endDate) + "'");
+				strBuffer.append(" INNER JOIN person p on o.patient_id = p.person_id AND  ");
+				strBuffer.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
+				strBuffer.append(" group by o.patient_id ");
 				
-				 query = sessionFactory.getCurrentSession().createSQLQuery("select distinct pg.patient_id from patient_program pg "
-					        + "inner join person p on pg.patient_id = p.person_id "
-					        + "inner join patient pa on pg.patient_id = pa.patient_id "
-					        + "inner join orders ord on pg.patient_id = ord.patient_id "		
-					        + "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate)  + " ')) "
-					        + " and ord.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ") "
-					        + " and pg.voided = 0 and p.voided = 0 and ord.voided = 0 "
-					        + "and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '" + df.format(endDate)
-					        + "' and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id= 2" 
-					        + " and pg.date_enrolled <= '" + df.format(endDate) + "' "
-					        + " AND "+patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate)
-					        );
+				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
+				
+//				 query = sessionFactory.getCurrentSession().createSQLQuery("select distinct pg.patient_id from patient_program pg "
+//					        + "inner join person p on pg.patient_id = p.person_id "
+//					        + "inner join patient pa on pg.patient_id = pa.patient_id "
+//					        + "inner join orders ord on pg.patient_id = ord.patient_id "		
+//					        + "where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate)  + " ')) "
+//					        + " and ord.concept_id IN (" + DrugOrderExportUtil.gpGetARVConceptIds() + ") "
+//					        + " and pg.voided = 0 and p.voided = 0 and ord.voided = 0 "
+//					        + "and pa.voided = 0 and (cast(ord.start_date as DATE)) <= '" + df.format(endDate)
+//					        + "' and (cast(ord.start_date as DATE)) <= '" + df.format(endDate) + "' and pg.program_id= 2" 
+//					        + " and pg.date_enrolled <= '" + df.format(endDate) + "' "
+//					        + " AND "+patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate)
+//					        );
 				
 			}
 			if (startDate != null && endDate != null) {
@@ -902,7 +903,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //				strBuffer.append(getQueryPortionForProphylaxis());
 //				strBuffer.append(" INNER JOIN drug drug on drug.drug_id=dro.drug_inventory_id ");
 				strBuffer.append(" AND o.concept_id in ("+DrugOrderExportUtil.gpGetARVConceptIds()+") ");
-				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0  ");
+				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0  and pg.date_enrolled <= '" + df.format(endDate) + "' ");
 				strBuffer.append(" INNER JOIN person p on o.patient_id = p.person_id AND  ");
 				strBuffer.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
 				strBuffer.append(" group by o.patient_id ");
@@ -936,7 +937,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //				strBuffer.append(getQueryPortionForProphylaxis());
 //				strBuffer.append(" INNER JOIN drug drug on drug.drug_id=dro.drug_inventory_id ");
 				strBuffer.append(" AND o.concept_id in ("+DrugOrderExportUtil.gpGetARVConceptIds()+") ");
-				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0 ");
+				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0 and pg.date_enrolled <= '" + df.format(endDate) + "' ");
 				strBuffer.append(" INNER JOIN person p on o.patient_id = p.person_id AND  ");
 				strBuffer.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
 				strBuffer.append(" group by o.patient_id ");
@@ -971,7 +972,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //				strBuffer.append(getQueryPortionForProphylaxis());
 //				strBuffer.append(" INNER JOIN drug drug on drug.drug_id=dro.drug_inventory_id ");
 				strBuffer.append(" AND o.concept_id in ("+DrugOrderExportUtil.gpGetARVConceptIds()+") ");
-				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0  ");
+				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0 and pg.date_enrolled <= '" + df.format(endDate) + "'  ");
 				strBuffer.append(" group by o.patient_id");
 				
 				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
@@ -1000,7 +1001,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //				strBuffer.append(getQueryPortionForProphylaxis());
 //				strBuffer.append(" INNER JOIN drug drug on drug.drug_id=dro.drug_inventory_id ");
 				strBuffer.append(" AND o.concept_id in ("+DrugOrderExportUtil.gpGetARVConceptIds()+") ");
-				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0  ");
+				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0 and pg.date_enrolled <= '" + df.format(endDate) + "' ");
 				strBuffer.append(" group by o.patient_id");
 				
 				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
@@ -1030,7 +1031,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //				strBuffer.append(getQueryPortionForProphylaxis());
 //				strBuffer.append(" INNER JOIN drug drug on drug.drug_id=dro.drug_inventory_id ");
 				strBuffer.append(" AND o.concept_id in ("+DrugOrderExportUtil.gpGetARVConceptIds()+") ");
-				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0 ");
+				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0 and pg.date_enrolled <= '" + df.format(endDate) + "' ");
 				strBuffer.append("group by o.patient_id");
 				
 				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
@@ -1061,7 +1062,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 //				strBuffer.append(getQueryPortionForProphylaxis());
 //				strBuffer.append(" INNER JOIN drug drug on drug.drug_id=dro.drug_inventory_id ");
 				strBuffer.append(" AND o.concept_id in ("+DrugOrderExportUtil.gpGetARVConceptIds()+") ");
-				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0  ");
+				strBuffer.append(" AND o.voided=0 AND pa.voided=0 AND pg.voided=0 and pg.date_enrolled <= '" + df.format(endDate) + "' ");
 				strBuffer.append(" group by o.patient_id");
 				
 				query = sessionFactory.getCurrentSession().createSQLQuery(strBuffer.toString());
