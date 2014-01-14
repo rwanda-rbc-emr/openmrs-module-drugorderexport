@@ -101,14 +101,21 @@ public class StartTreatmentController extends ParameterizableViewController {
 				mnAge = service.getDateObjectFormAge(Integer.parseInt(minAge));
 				
 			}
+			String arvDrugConceptIds = DrugOrderExportUtil.gpGetARVConceptIds();
 			
 			patientIds = service.getPatientWhoStartedOnDate(startDate, endDate, gender, mnAge, mxAge, mnBirthdate,
 			    mxBirthdate);
 			
+			List<Integer> list = new ArrayList<Integer>();
+			
 			if (checkedValue == 1) {
 				if(endDate==null)
 				endDate = new Date();
-				patientIds = service.getActivePatients(patientIds, endDate);
+//				patientIds = service.getActivePatients(patientIds, endDate);
+//				list=service.getPatientWhoStartedOnDate(startDate, endDate, gender, mnAge, mxAge, mnBirthdate,
+//					    mxBirthdate);
+				log.info("ttttttttttttttttt "+patientIds.size()+"tttttttttttttt "+arvDrugConceptIds+"ttttttttttt "+endDate);
+				patientIds = service.getActiveOnDrugsPatients(patientIds,arvDrugConceptIds,endDate);
 			}
 			
 			for (Integer patientId : patientIds) {

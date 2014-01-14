@@ -73,9 +73,12 @@ public class ProphylaxisPatientController extends ParameterizableViewController 
 //				if(service.isPatientOnProphylaxisOnlyBeforePeriod(id, endDate))
 //					patients.add(id);
 //			}
-		log.info("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb "+patients.size());
+//		log.info("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb "+patients.size());
+			
+			String pophylaxisDrugIds = DrugOrderExportUtil.getProphylaxisDrugConceptIds();
 			if (checkedValue == 1) {
-				patients = service.getActivePreARTPatients(patients, endDate);
+				List<Integer> patients1 = service.getAllProphylaxisPatients(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
+				patients = service.getActiveOnDrugsPatients(patients1, pophylaxisDrugIds, endDate);
 			}
 			
 			List<Patient> patientList = new ArrayList<Patient>();

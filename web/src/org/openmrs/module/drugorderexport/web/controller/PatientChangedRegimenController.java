@@ -63,9 +63,7 @@ public class PatientChangedRegimenController extends ParameterizableViewControll
 			
 			patientIds = service.getPatientsWhoChangedRegimen(startDate, endDate, gender, mnAge, mxAge, mnBirthdate,
 			    mxBirthdate);
-			if (checkedValue == 1)
-				
-				
+			if (checkedValue == 1)	
 				patientIds = service.getActivePatients(patientIds, endDate);
 			
 			List<Object[]> patientHistory = new ArrayList<Object[]>();

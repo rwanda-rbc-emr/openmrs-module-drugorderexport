@@ -199,11 +199,10 @@ public class DrugOrderFormController extends ParameterizableViewController {
 					    gender, minAge, maxAge, minBirthdate, maxBirthdate);
 					
 					if (checkedValue == 1){
-//						patientIds = service.getActivePatients(service.searchDrugOrderByDrug(anyOrAll, startDate, endDate, service
-//						        .getListOfDrugsByIds(drugIds), gender, minAge, maxAge, minBirthdate, maxBirthdate), endDate);
+						List<Integer> allPatients = service.searchDrugOrderByDrug(anyOrAll, startDate, endDate, service.getListOfDrugsByIds(drugIds),
+							    gender, minAge, maxAge, minBirthdate, maxBirthdate);
 						
-						patientIds = service.getActiveOnDrugsPatients(service.searchDrugOrderByDrug(anyOrAll, startDate, endDate, service
-						        .getListOfDrugsByIds(drugIds), gender, minAge, maxAge, minBirthdate, maxBirthdate),arvDrugIds, endDate);
+						patientIds = service.getActiveOnDrugsPatients(allPatients,arvDrugIds, endDate);
 
 					}
 			}
@@ -212,9 +211,10 @@ public class DrugOrderFormController extends ParameterizableViewController {
 					    gender, minAge, maxAge, minBirthdate, maxBirthdate);
 
 					if (checkedValue == 1){
-						patientIds = service.getActiveOnDrugsPatients(service.searchDrugOrderByDrugsConcepts
-								(anyOrAll, startDate, endDate, service.getListOfDrugsByConceptsIds(drugsByConceptsIds),
-							    gender, minAge, maxAge, minBirthdate, maxBirthdate),arvConceptIds, endDate);
+//						List<Integer> allPatients =  service.searchDrugOrderByDrugsConcepts(anyOrAll, startDate, endDate, service.getListOfDrugsByConceptsIds(drugsByConceptsIds),
+//							    gender, minAge, maxAge, minBirthdate, maxBirthdate);
+//						patientIds = service.getActiveOnDrugsPatients(patientIds,arvConceptIds, endDate);
+						patientIds=service.searchDrugOrderByDrugActive(anyOrAll, startDate, endDate, service.getListOfDrugsByConceptsIds(drugsByConceptsIds), gender, minAge, maxAge, minBirthdate, maxBirthdate);
 					}
 			}
 			

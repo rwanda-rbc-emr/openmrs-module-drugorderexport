@@ -139,17 +139,22 @@ public class PatientOnRegimenTypeController extends ParameterizableViewControlle
 //				arvPatientIds = service.searchDrugOrderByDrug("any", startDate, endDate, arvDrugs, gender, mnAge, mxAge,
 //				    mnBirthdate, mxBirthdate);
 				String arvConceptIds = DrugOrderExportUtil.gpGetARVConceptIds();
+			
 				arvPatientIds = service.getPatientsOnRegimenCategory(arvConceptIds, startDate, endDate, gender, mnAge, mxAge,
 				    mnBirthdate, mxBirthdate);
 				
 				
-				if (checkedValue == 1)
+				if (checkedValue == 1){
 //					arvPatientIds = service.getActivePatients(arvPatientIds, endDate);
-					arvPatientIds = service.getPatientsOnRegimenCategoryActive(arvConceptIds, startDate, endDate, gender, mnAge, mxAge,
+					List<Integer> listPatients = service.getPatientsOnRegimenCategory(arvConceptIds, startDate, endDate, gender, mnAge, mxAge,
 						    mnBirthdate, mxBirthdate);
+				
+					arvPatientIds = service.getActiveOnDrugsPatients(listPatients, arvConceptIds, endDate);
 					categoryPatients.put("ARV ", arvPatientIds);
 				
 					exportPatientIds = arvPatientIds;
+				}
+					
 			}
 			if (request.getParameterValues("prophylaxis") != null) {
 				prophylaxisValueStr = request.getParameterValues("prophylaxis");

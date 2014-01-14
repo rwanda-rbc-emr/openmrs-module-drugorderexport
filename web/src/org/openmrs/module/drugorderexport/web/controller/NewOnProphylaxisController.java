@@ -67,8 +67,13 @@ public class NewOnProphylaxisController extends ParameterizableViewController {
 			
 			patients = service.getNewPatientsOnProphylaxis(startDate, endDate, gender, mnAge, mxAge, mnBirthdate,
 			    mxBirthdate);
-			if (checkedValue == 1)
-				patients = service.getActivePreARTPatients(patients, endDate);
+			String pophylaxisDrugIds = DrugOrderExportUtil.getProphylaxisDrugConceptIds();
+			if (checkedValue == 1){
+//				patients = service.getActivePreARTPatients(patients, endDate);
+				List<Integer> patients1 = service.getNewPatientsOnProphylaxis(startDate, endDate, gender, mnAge, mxAge, mnBirthdate,
+					    mxBirthdate);
+			patients=service.getActiveOnDrugsPatients(patients1, pophylaxisDrugIds, endDate);
+			}
 			
 			for (Integer id : patients) {
 				if (!Context.getPatientService().getPatient(id).getVoided())

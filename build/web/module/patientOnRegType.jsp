@@ -156,11 +156,11 @@ $(document).ready(function() {
 
 					</tr>
 					
-						<tr><td><spring:message code="drugorderexport.ARVs" /> </td><td><input type="checkbox" name="arv" value="arv"/></td></tr>
-						<tr><td><spring:message code="drugorderexport.prophylaxis" /></td><td><input type="checkbox" name="prophylaxis" value="prophylaxis" /></td></tr>
-						<tr><td><spring:message code="drugorderexport.firstReg" /></td><td><input type="checkbox" name="firstLine" value="firstLine" /></td></tr>
-						<tr><td><spring:message code="drugorderexport.secondReg" /></td> <td><input type="checkbox"  name="secondLine" value="secondLine" /></td></tr>
-					
+						<tr><td>-<spring:message code="drugorderexport.ARVs" /> </td><td><input type="checkbox" name="arv" value="arv"/></td></tr>
+						<tr><td>-<spring:message code="drugorderexport.prophylaxis" /></td><td><input type="checkbox" name="prophylaxis" value="prophylaxis" /></td></tr>
+						<tr><td>-<spring:message code="drugorderexport.firstReg" /></td><td><input type="checkbox" name="firstLine" value="firstLine" /></td></tr>
+						<tr><td>-<spring:message code="drugorderexport.secondReg" /></td> <td><input type="checkbox"  name="secondLine" value="secondLine" /></td></tr>
+						<tr><td>-<spring:message code="drugorderexport.thirdLineReg" /></td> <td><input type="checkbox"  name="thirdLine" value="thirdLine" /></td></tr>
 					
 
 					<tr>
