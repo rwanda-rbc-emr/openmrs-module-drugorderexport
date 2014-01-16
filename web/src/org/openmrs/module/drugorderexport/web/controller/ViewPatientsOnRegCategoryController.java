@@ -52,6 +52,10 @@ public class ViewPatientsOnRegCategoryController extends ParameterizableViewCont
 			patients = mapFromController.get("Prophylaxis ");
 			title = "Patients on Prophylaxis";
 		}
+		if (viewCategory.equals("Third Line")) {
+			patients = mapFromController.get("Third Line ");
+			title = "Patients on Third Line";
+		}
 		DrugOrderService service = (DrugOrderService) Context.getService(DrugOrderService.class);
 		List<Patient> patientsFromId = new ArrayList<Patient>();
 		if (patients != null)

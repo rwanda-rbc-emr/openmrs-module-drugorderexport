@@ -368,23 +368,31 @@ public class DrugOrderServiceImpl implements DrugOrderService {
 				startdate, enddate, drugs,  gender,
 				 minAge,  maxAge,  minBirthdate,  maxBirthdate);
 	}
-	@Override
-	public List<Integer> getPatientsOnFirstLineRegActive(Date startdate,
-			Date enddate, String gender, Date minAge, Date maxAge,
-			Date minBirthdate, Date maxBirthdate) {
-	
-		return drugorderDAO.getPatientsOnFirstLineRegActive(startdate,
-				enddate, gender, minAge, maxAge,
-				minBirthdate, maxBirthdate);
-	}
 
 	@Override
 	public List<Integer> getActiveOnDrugsPatients(List<Integer> patients,
 			String list, Date endDate) {
-		// TODO Auto-generated method stub
 		return drugorderDAO.getActiveOnDrugsPatients(patients,list,endDate);
 	}
-	
+	@Override
+	public List<Integer> getFirstLinePatientsBeforeDate(Date startdate, Date enddate, String gender, Date minAge, Date maxAge,
+            Date minBirthdate, Date maxBirthdate) {
+		return drugorderDAO.getFirstLinePatientsBeforeDate(startdate, enddate, gender, minAge, maxAge,
+	            minBirthdate, maxBirthdate);
+	}
+	@Override
+	public List<Integer> getSecondLinePatientsBeforeDate(Date startdate, Date enddate, String gender, Date minAge, Date maxAge,
+            Date minBirthdate, Date maxBirthdate) {
+		return drugorderDAO.getSecondLinePatientsBeforeDate(startdate, enddate, gender, minAge, maxAge,
+	            minBirthdate, maxBirthdate);
+	}
+	@Override
+	public List<Integer> getThirdLinePatientsBeforeDate(Date startdate, Date enddate, String gender, Date minAge, Date maxAge,
+            Date minBirthdate, Date maxBirthdate) {
+		return drugorderDAO.getThirdLinePatientsBeforeDate(startdate, enddate, gender, minAge, maxAge,
+	            minBirthdate, maxBirthdate);
+	}
+
 
    
 

@@ -430,8 +430,14 @@ public interface DrugOrderExportDao {
 	 public List<Integer> searchDrugOrderByDrugActive(String anyOrAll, Date startdate, Date enddate, List<Drug> drugs,
              String gender, Date minAge, Date maxAge, Date minBirthdate, Date maxBirthdate);
 	 
-	 public List<Integer> getPatientsOnFirstLineRegActive(Date startdate, Date enddate, String gender, Date minAge, Date maxAge,
-             Date minBirthdate, Date maxBirthdate) ;
-	 
 	 public List<Integer> getActiveOnDrugsPatients(List<Integer> patients,String list,Date endDate);
+	 
+	 public List<Integer> getFirstLinePatientsBeforeDate(Date startdate, Date enddate, String gender, Date minAge, Date maxAge,
+	            Date minBirthdate, Date maxBirthdate);
+	 
+	 public List<Integer> getSecondLinePatientsBeforeDate(Date startdate, Date enddate, String gender, Date minAge, Date maxAge,
+	            Date minBirthdate, Date maxBirthdate);
+	 
+	 public List<Integer> getThirdLinePatientsBeforeDate(Date startdate, Date enddate, String gender, Date minAge, Date maxAge,
+	            Date minBirthdate, Date maxBirthdate);
 }

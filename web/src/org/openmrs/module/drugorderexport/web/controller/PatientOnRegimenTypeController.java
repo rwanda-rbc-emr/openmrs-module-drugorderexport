@@ -49,6 +49,7 @@ public class PatientOnRegimenTypeController extends ParameterizableViewControlle
 		List<Integer> prophylaxisPatientsIds = new ArrayList<Integer>();
 		List<Integer> firstLinePatients = new ArrayList<Integer>();
 		List<Integer> secondLinePatientIds = new ArrayList<Integer>();
+		List<Integer> thirdLinePatientIds = new ArrayList<Integer>();
 		
 		DrugOrderService service = (DrugOrderService) Context.getService(DrugOrderService.class);
 		String viewCategory = "";
@@ -175,38 +176,52 @@ public class PatientOnRegimenTypeController extends ParameterizableViewControlle
 				regCategories.add(secondLineValueStr[0]);
 				
 				String secondLineConceptIds = DrugOrderExportUtil.getSecondLineDrugConceptIds();
-				secondLinePatientIds = service.getPatientsOnRegimenCategory(secondLineConceptIds, startDate, endDate, gender, mnAge, mxAge,
-				    mnBirthdate, mxBirthdate);
-				if (checkedValue == 1)
-					secondLinePatientIds = service.getActivePatients(secondLinePatientIds, endDate);
+//				secondLinePatientIds = service.getPatientsOnRegimenCategory(secondLineConceptIds, startDate, endDate, gender, mnAge, mxAge,
+//				    mnBirthdate, mxBirthdate);
+				secondLinePatientIds = service.getSecondLinePatientsBeforeDate(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
+				if (checkedValue == 1) {
+//					secondLinePatientIds = service.getActivePatients(secondLinePatientIds, endDate);
+					secondLinePatientIds = service.getActiveOnDrugsPatients(secondLinePatientIds, secondLineConceptIds, endDate);
+				}
 				categoryPatients.put("Second Line ", secondLinePatientIds);
 				exportPatientIds = secondLinePatientIds;
 			}
 			if (request.getParameterValues("firstLine") != null) {
-				List<Integer> firstLinePatientIds = service.getPatientsOnFirstLineReg(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
-				
-//				
-//				String firstLineConceptIds = DrugOrderExportUtil.gpGetFirstLineDrugConceptIds();
-//				List<Integer> firstLinePatientIds = service.getPatientsOnRegimenCategory(firstLineConceptIds, startDate, endDate, gender, mnAge, mxAge,
-//					    mnBirthdate, mxBirthdate);
-//				
-				String secondLineConceptIds = DrugOrderExportUtil.getSecondLineDrugConceptIds();
-				List<Integer> secLinePatientIds = service.getPatientsOnRegimenCategory(secondLineConceptIds, startDate, endDate, gender, mnAge, mxAge,
-				    mnBirthdate, mxBirthdate);
+//				List<Integer> firstLinePatientIds = service.getPatientsOnFirstLineReg(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
+								
+				String firstLineConceptIds = DrugOrderExportUtil.gpGetFirstLineDrugConceptIds();
+//				List<Integer> secLinePatientIds = service.getPatientsOnRegimenCategory(secondLineConceptIds, startDate, endDate, gender, mnAge, mxAge,
+//				    mnBirthdate, mxBirthdate);
 				
 				//exclude secondline patients from those on first line regimen
-				List<Integer> newFirstLinePatientIds=new ArrayList<Integer>();
-				for (Integer d : firstLinePatientIds) {
-					if(!secLinePatientIds.contains(d))
-						newFirstLinePatientIds.add(d);
+//				List<Integer> newFirstLinePatientIds=new ArrayList<Integer>();
+//				for (Integer d : firstLinePatientIds) {
+//					if(!secLinePatientIds.contains(d))
+//						newFirstLinePatientIds.add(d);
+//				}
+				
+				firstLinePatients = service.getFirstLinePatientsBeforeDate(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
+				
+				if (checkedValue == 1){
+//					newFirstLinePatientIds = service.getActivePatients(newFirstLinePatientIds, endDate);
+					List<Integer> cumulativeList = service.getFirstLinePatientsBeforeDate(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
+					firstLinePatients = service.getActiveOnDrugsPatients(cumulativeList, firstLineConceptIds, endDate);
 				}
 				
+				categoryPatients.put("First Line ", firstLinePatients);
+				exportPatientIds = firstLinePatients;
+			}
+			if (request.getParameterValues("thirdLine") != null) {
+		
+				String thirdLineConceptIds = DrugOrderExportUtil.getThirdLineDrugConceptIds();
+				thirdLinePatientIds = service.getThirdLinePatientsBeforeDate(startDate, endDate, gender, mnAge, mxAge,
+				    mnBirthdate, mxBirthdate);
 				
 				if (checkedValue == 1)
-					newFirstLinePatientIds = service.getActivePatients(newFirstLinePatientIds, endDate);
+					thirdLinePatientIds = service.getActiveOnDrugsPatients(thirdLinePatientIds, thirdLineConceptIds, endDate);
 				
-				categoryPatients.put("First Line ", newFirstLinePatientIds);
-				exportPatientIds = newFirstLinePatientIds;
+				categoryPatients.put("Third Line ", thirdLinePatientIds);
+				exportPatientIds = thirdLinePatientIds;
 			}
 			
 			

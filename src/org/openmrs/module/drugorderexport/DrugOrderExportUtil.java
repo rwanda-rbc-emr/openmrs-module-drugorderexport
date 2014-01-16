@@ -150,6 +150,17 @@ public class DrugOrderExportUtil {
 		return Context.getAdministrationService().getGlobalProperty("drugorderexport.secondLineDrugConceptIds");
 	}
 	
+	//==========================================================================================================================================
+	
+		/**
+		 * Third Line concept ids
+		 * 
+		 * @return string
+		 */
+		public static String getThirdLineDrugConceptIds() {
+			return Context.getAdministrationService().getGlobalProperty("drugorderexport.thirdLineDrugConceptIds");
+		}
+	
 
 	//==========================================================================================================================================
 	
@@ -402,7 +413,7 @@ public class DrugOrderExportUtil {
 		int patientMaxCD4Count = 0;
 		int patientMaxVL = 0;
 		
-		log.info("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_patients "+patients.size());
+//		log.info("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_patients "+patients.size());
 		
 		for (Patient patient : patients) {
 			RegimenHistory history = RegimenUtils.getRegimenHistory(patient);

@@ -394,6 +394,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 		
 		StringBuffer portion = new StringBuffer();
+		
 		portion.append(" select distinct pa.patient_id from patient_program pg  ");
 		portion.append(" inner join person p on pg.patient_id = p.person_id ");
 		portion.append(" inner join patient pa on pg.patient_id = pa.patient_id ");
@@ -427,9 +428,9 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		List<Integer> patientIds2 = new ArrayList<Integer>();
 
 		
-		StringBuffer buffer2 = new StringBuffer();
-		
 		for (Integer patientId : patientIds1) {
+			
+			StringBuffer buffer2 = new StringBuffer();
 			
 			buffer2.append("select distinct pg.patient_id from patient_program pg ");
 			buffer2.append("inner join person pe on pg.patient_id = pe.person_id ");
@@ -443,8 +444,8 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			SQLQuery query2 = sessionFactory.getCurrentSession().createSQLQuery(buffer2.toString());
 			
 //			log.info("gggggggggggggggggggggggggg "+query2.toString());
-			patientIds2 = query2.list();
 			
+			patientIds2 = query2.list();
 	
 			
 			if (patientIds2.size() == 0) {
@@ -2704,15 +2705,14 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
                                                Date minBirthdate, Date maxBirthdate) {
 
     	StringBuffer s = new StringBuffer();
+    	
     	if (gender.equals("") && minAge == null && maxAge == null && minBirthdate == null && maxBirthdate == null) {
     	s.append("select DISTINCT pa.patient_id from patient pa ");
     	s.append("inner join person p on pa.patient_id = p.person_id ");
     	s.append("INNER JOIN patient_program pg on pg.patient_id=pa.patient_id and pg.program_id=2 ");
     	s.append("INNER JOIN orders o ON pa.patient_id = o.patient_id AND o.voided=0 AND pa.voided=0 ");
     	s.append("INNER JOIN drug_order dr ON dr.order_id = o.order_id "+ checkInputDate(startdate, enddate));
-//    	s.append("INNER JOIN drug d ON dr.drug_inventory_id = d.drug_id ");
     	s.append(" AND o.concept_id IN ("+DrugOrderExportUtil.gpGetFirstLineDrugConceptIds()+") ");
-//    	s.append("AND dr.drug_inventory_id NOT IN("+DrugOrderExportUtil.getSecondLineDrugIds()+")  ");
     	}
     	else{
     		s.append("select DISTINCT pa.patient_id from patient pa ");
@@ -2720,8 +2720,6 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
         	s.append("INNER JOIN patient_program pg on pg.patient_id=pa.patient_id and pg.program_id=2 ");
         	s.append("INNER JOIN orders o ON pa.patient_id = o.patient_id AND o.voided=0 AND pa.voided=0 ");
         	s.append("INNER JOIN drug_order dr ON dr.order_id = o.order_id "+ checkInputDate(startdate, enddate));
-//        	s.append("INNER JOIN drug d ON dr.drug_inventory_id = d.drug_id ");
-//        	s.append(" AND d.concept_id IN ("+DrugOrderExportUtil.gpGetARVConceptIds()+") ");
         	s.append("AND o.concept_id IN("+DrugOrderExportUtil.gpGetFirstLineDrugConceptIds()+") AND ");
         	s.append(patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate));
     	}
@@ -2969,7 +2967,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		}
 				return found;
 	}
-
+	//==========================================================================================================================================
 	@Override
 	public List<Integer> getPatientsOnRegimenCategoryActive(
 			String categoryConceptId, Date startDate, Date endDate,
@@ -3042,9 +3040,8 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 
     		return patientIds;
 	}
-
+	//==========================================================================================================================================
 	@Override
-	
 	public List<Integer> searchDrugOrderByDrugActive(String anyOrAll, 
 			Date startdate, Date enddate, List<Drug> drugs, String gender,
 			Date minAge, Date maxAge, Date minBirthdate, Date maxBirthdate) {
@@ -3106,7 +3103,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		return patientOnDrugs;
 	}
 
-	
+	//==========================================================================================================================================
 	   public List<Integer> getQueryResultByConceptActive(ArrayList<Integer> listDrugsConceptsIds, String val, Date startDate, Date endDate,
 			           String gender, Date minAge, Date maxAge, Date minBirthdate, Date maxBirthdate) {
 			SQLQuery query = null;
@@ -3287,7 +3284,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			
 			}
 
-
+	 //==========================================================================================================================================
 	@Override
 	public List<Integer> getActiveOnDrugsPatients(List<Integer> patients,String list,Date endDate) {
 		Session session = getSessionFactory().getCurrentSession();
@@ -3331,16 +3328,281 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		}
 		return res;
 	}
-
+	//==========================================================================================================================================
 	@Override
-	public List<Integer> getPatientsOnFirstLineRegActive(Date startdate,
-			Date enddate, String gender, Date minAge, Date maxAge,
-			Date minBirthdate, Date maxBirthdate) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Integer> getFirstLinePatientsBeforeDate(Date startdate, Date enddate, String gender, Date minAge, Date maxAge,
+            Date minBirthdate, Date maxBirthdate) {
+		StringBuffer s = new StringBuffer();
+		StringBuffer s1 = new StringBuffer();
+		StringBuffer s2 = new StringBuffer();
+		
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		
+		if(enddate==null)
+			enddate = new Date();
+		
+        List<Integer> secondLinePatients = new ArrayList<Integer>();
+        List<Integer> thirdLinePatients = new ArrayList<Integer>();
+    
+		
+		//???????????????????????????????? missing concepts ?????????????????????????????????????
+		String artConceptId = "0";
+		String firstLineConceptId = "0";
+		String firstLineValueCodedId="0";
+		String firstLineDrugsConceptsIds="0";
+		
+	if (gender.equals("") && minAge == null && maxAge == null && minBirthdate == null && maxBirthdate == null) {
+		 s.append("SELECT DISTINCT o.patient_id FROM orders o ");
+		 s.append("INNER JOIN patient pat on pat.patient_id=o.patient_id ");
+		 s.append("INNER JOIN patient_program pg on pg.patient_id=pat.patient_id ");
+		 s.append("INNER JOIN person p on p.person_id=pat.patient_id ");
+		 s.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
+		 s.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
+		 s.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		 s.append("AND ob.concept_id = "+firstLineConceptId+" AND ob.value_coded= "+firstLineValueCodedId+ " AND o.concept_id IN (" +firstLineDrugsConceptsIds+ ") ");
+		}
+		else{
+			s.append("SELECT DISTINCT o.patient_id FROM orders o ");
+			s.append("INNER JOIN patient pat on pat.patient_id=o.patient_id ");
+			s.append("INNER JOIN patient_program pg on pg.patient_id=pat.patient_id ");
+			s.append("INNER JOIN person p on p.person_id=pat.patient_id ");
+			s.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
+			s.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
+			s.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+			s.append("AND ob.concept_id = "+firstLineConceptId+" AND ob.value_coded= "+firstLineValueCodedId+ " AND o.concept_id IN (" +firstLineDrugsConceptsIds+ ") ");
+			s.append(" AND "+patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate)); 
+		}
+		
+		log.info("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkks "+s.toString());
+		
+		
+        SQLQuery query = sessionFactory.getCurrentSession().createSQLQuery(s.toString());
+        
+        List<Integer> firstLinePatients = query.list();
+        
+		// =============================================This locig caused "java.lang.StackOverflowError exception / has been changed================
+		//	    secondLinePatients = getSecondLinePatientsBeforeDate(startdate, enddate, gender, minAge, maxAge,minBirthdate, maxBirthdate);
+		//	    thirdLinePatients = getThirdLinePatientsBeforeDate(startdate, enddate, gender, minAge, maxAge,minBirthdate, maxBirthdate);
+	    
+		String secondLineConceptId = "0";
+		String secondLineValueCodedId="0";
+		String secondLineDrugsConceptsIds="0";
+		
+		String thirdLineConceptId = "0";
+		String thirdLineValueCodedId="0";
+		String thirdLineDrugsConceptsIds="0";
+        
+		//=========================second line patients===============================
+		
+        s1.append("SELECT DISTINCT o.patient_id FROM orders o ");
+		s1.append("INNER JOIN patient pat on pat.patient_id=o.patient_id ");
+		s1.append("INNER JOIN patient_program pg on pg.patient_id=pat.patient_id ");
+		s1.append("INNER JOIN person p on p.person_id=pat.patient_id ");
+		s1.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
+		s1.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
+		s1.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s1.append("AND ob.concept_id = "+secondLineConceptId+" AND ob.value_coded= "+secondLineValueCodedId+ " AND o.concept_id IN (" +secondLineDrugsConceptsIds+ ") ");
+        
+        SQLQuery query1 = sessionFactory.getCurrentSession().createSQLQuery(s1.toString());
+        
+        List<Integer> sLinePatients = query1.list();
+        
+        //===========================third line patients================================
+        s2.append("SELECT DISTINCT o.patient_id FROM orders o ");
+		s2.append("INNER JOIN patient pat on pat.patient_id=o.patient_id ");
+		s2.append("INNER JOIN patient_program pg on pg.patient_id=pat.patient_id ");
+		s2.append("INNER JOIN person p on p.person_id=pat.patient_id ");
+		s2.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
+		s2.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
+		s2.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s2.append("AND ob.concept_id = "+thirdLineConceptId+" AND ob.value_coded= "+thirdLineValueCodedId+ " AND o.concept_id IN (" +thirdLineDrugsConceptsIds+ ") ");
+        
+        SQLQuery query2 = sessionFactory.getCurrentSession().createSQLQuery(s2.toString());
+        
+        List<Integer> tLinePatients = query1.list();
+        
+		
+        List<Integer> result = new ArrayList<Integer>();
+        
+        for (Integer id : firstLinePatients) {
+			if(!sLinePatients.contains(id))
+				if(!tLinePatients.contains(id))
+					result.add(id);
+		}
+		
+		return result;
+	}
+	//==========================================================================================================================================
+	@Override
+	public List<Integer> getSecondLinePatientsBeforeDate(Date startdate, Date enddate, String gender, Date minAge, Date maxAge,
+            Date minBirthdate, Date maxBirthdate) {
+		StringBuffer s = new StringBuffer();
+		StringBuffer s1 = new StringBuffer();
+		StringBuffer s2 = new StringBuffer();
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		
+        List<Integer> firstLinePatients = new ArrayList<Integer>();
+        List<Integer> thirdLinePatients = new ArrayList<Integer>();
+        
+		if(enddate==null)
+			enddate = new Date();
+        
+		
+		//???????????????????????????????? missing concepts ?????????????????????????????????????
+		String artConceptId = "0";
+		String secondLineConceptId = "0";
+		String secondLineValueCodedId="0";
+		String secondLineDrugsConceptsIds="0";
+		
+		
+		String firstLineConceptId = "0";
+		String firstLineValueCodedId="0";
+		String firstLineDrugsConceptsIds="0";
+		
+		
+		String thirdLineConceptId = "0";
+		String thirdLineValueCodedId="0";
+		String thirdLineDrugsConceptsIds="0";
+		
+		s.append("SELECT DISTINCT o.patient_id FROM orders o ");
+		s.append("INNER JOIN patient pat on pat.patient_id=o.patient_id ");
+		s.append("INNER JOIN patient_program pg on pg.patient_id=pat.patient_id ");
+		s.append("INNER JOIN person p on p.person_id=pat.patient_id ");
+		s.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
+		s.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
+		s.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s.append("AND ob.concept_id = "+secondLineConceptId+" AND ob.value_coded= "+secondLineValueCodedId+ " AND o.concept_id IN (" +secondLineDrugsConceptsIds+ ") ");
+		
+        SQLQuery query = sessionFactory.getCurrentSession().createSQLQuery(s.toString());
+        
+        List<Integer> secondLinePatients = query.list();
+        
+//        firstLinePatients = getFirstLinePatientsBeforeDate(startdate, enddate, gender, minAge, maxAge,minBirthdate, maxBirthdate);
+//        thirdLinePatients = getThirdLinePatientsBeforeDate(startdate, enddate, gender, minAge, maxAge,minBirthdate, maxBirthdate);
+       
+        //=============================first line patients==================================
+        s1.append("SELECT DISTINCT o.patient_id FROM orders o ");
+		s1.append("INNER JOIN patient pat on pat.patient_id=o.patient_id ");
+		s1.append("INNER JOIN patient_program pg on pg.patient_id=pat.patient_id ");
+		s1.append("INNER JOIN person p on p.person_id=pat.patient_id ");
+		s1.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
+		s1.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
+		s1.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s1.append("AND ob.concept_id = "+firstLineConceptId+" AND ob.value_coded= "+firstLineValueCodedId+ " AND o.concept_id IN (" +firstLineDrugsConceptsIds+ ") ");
+        
+        SQLQuery query1 = sessionFactory.getCurrentSession().createSQLQuery(s1.toString());
+        List<Integer> fLinePatients = query1.list();
+        
+        //===========================third line patients================================
+        s2.append("SELECT DISTINCT o.patient_id FROM orders o ");
+		s2.append("INNER JOIN patient pat on pat.patient_id=o.patient_id ");
+		s2.append("INNER JOIN patient_program pg on pg.patient_id=pat.patient_id ");
+		s2.append("INNER JOIN person p on p.person_id=pat.patient_id ");
+		s2.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
+		s2.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
+		s2.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s2.append("AND ob.concept_id = "+thirdLineConceptId+" AND ob.value_coded= "+thirdLineValueCodedId+ " AND o.concept_id IN (" +thirdLineDrugsConceptsIds+ ") ");
+        
+        SQLQuery query2 = sessionFactory.getCurrentSession().createSQLQuery(s2.toString());
+        List<Integer> tLinePatients = query1.list();
+        
+        List<Integer> result = new ArrayList<Integer>();
+        
+        for (Integer id : secondLinePatients) {
+			if(!fLinePatients.contains(id))
+				if(!tLinePatients.contains(id))
+					result.add(id);
+		}
+		
+		return result;
+	}
+	//==========================================================================================================================================
+	@Override
+	public List<Integer> getThirdLinePatientsBeforeDate(Date startdate, Date enddate, String gender, Date minAge, Date maxAge,
+            Date minBirthdate, Date maxBirthdate) {
+
+		StringBuffer s = new StringBuffer();
+		StringBuffer s1 = new StringBuffer();
+		StringBuffer s2 = new StringBuffer();
+		
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		
+		 List<Integer> firstLinePatients = new ArrayList<Integer>();
+	     List<Integer> secondLinePatients = new ArrayList<Integer>();
+	     
+			if(enddate==null)
+				enddate = new Date();
+		
+		//???????????????????????????????? missing concepts ?????????????????????????????????????
+		String artConceptId = "0";
+		String thirdLineConceptId = "0";
+		String thirdLineValueCodedId="0";
+		String thirdLineDrugsConceptsIds="0";
+		
+		String secondLineConceptId = "0";
+		String secondLineValueCodedId="0";
+		String secondLineDrugsConceptsIds="0";
+		
+		
+		String firstLineConceptId = "0";
+		String firstLineValueCodedId="0";
+		String firstLineDrugsConceptsIds="0";
+		
+		s.append("SELECT DISTINCT o.patient_id FROM orders o ");
+		s.append("INNER JOIN patient pat on pat.patient_id=o.patient_id ");
+		s.append("INNER JOIN patient_program pg on pg.patient_id=pat.patient_id ");
+		s.append("INNER JOIN person p on p.person_id=pat.patient_id ");
+		s.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
+		s.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
+		s.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s.append("AND ob.concept_id = "+thirdLineConceptId+" AND ob.value_coded= "+thirdLineValueCodedId+ " AND o.concept_id IN (" +thirdLineDrugsConceptsIds+ ") ");
+		
+        SQLQuery query = sessionFactory.getCurrentSession().createSQLQuery(s.toString());
+        
+        List<Integer> thirdLinePatients = query.list();
+        
+
+//         firstLinePatients = getFirstLinePatientsBeforeDate(startdate, enddate, gender, minAge, maxAge,minBirthdate, maxBirthdate);
+//         secondLinePatients = getSecondLinePatientsBeforeDate(startdate, enddate, gender, minAge, maxAge,minBirthdate, maxBirthdate);
+
+        //=============================first line patients==================================
+        s1.append("SELECT DISTINCT o.patient_id FROM orders o ");
+		s1.append("INNER JOIN patient pat on pat.patient_id=o.patient_id ");
+		s1.append("INNER JOIN patient_program pg on pg.patient_id=pat.patient_id ");
+		s1.append("INNER JOIN person p on p.person_id=pat.patient_id ");
+		s1.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
+		s1.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
+		s1.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s1.append("AND ob.concept_id = "+firstLineConceptId+" AND ob.value_coded= "+firstLineValueCodedId+ " AND o.concept_id IN (" +firstLineDrugsConceptsIds+ ") ");
+        
+        SQLQuery query1 = sessionFactory.getCurrentSession().createSQLQuery(s1.toString());
+        List<Integer> fLinePatients = query1.list();
+        
+		//=========================second line patients===============================
+		
+        s2.append("SELECT DISTINCT o.patient_id FROM orders o ");
+        s2.append("INNER JOIN patient pat on pat.patient_id=o.patient_id ");
+        s2.append("INNER JOIN patient_program pg on pg.patient_id=pat.patient_id ");
+        s2.append("INNER JOIN person p on p.person_id=pat.patient_id ");
+        s2.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
+		s2.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
+		s2.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s2.append("AND ob.concept_id = "+secondLineConceptId+" AND ob.value_coded= "+secondLineValueCodedId+ " AND o.concept_id IN (" +secondLineDrugsConceptsIds+ ") ");
+        
+        SQLQuery query2 = sessionFactory.getCurrentSession().createSQLQuery(s1.toString());
+        
+        List<Integer> sLinePatients = query1.list();
+        
+        List<Integer> result = new ArrayList<Integer>();
+        
+        for (Integer id : thirdLinePatients) {
+			if(!fLinePatients.contains(id))
+				if(!sLinePatients.contains(id))
+					result.add(id);
+		}
+		
+		return result;
 	}
 
-
-	
 	
 }
