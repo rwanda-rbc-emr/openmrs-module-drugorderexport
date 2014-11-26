@@ -210,12 +210,9 @@ public class DrugOrderFormController extends ParameterizableViewController {
 				patientIds = service.searchDrugOrderByDrugsConcepts(anyOrAll, startDate, endDate, service.getListOfDrugsByConceptsIds(drugsByConceptsIds),
 					    gender, minAge, maxAge, minBirthdate, maxBirthdate);
 
-					if (checkedValue == 1){
-//						List<Integer> allPatients =  service.searchDrugOrderByDrugsConcepts(anyOrAll, startDate, endDate, service.getListOfDrugsByConceptsIds(drugsByConceptsIds),
-//							    gender, minAge, maxAge, minBirthdate, maxBirthdate);
-//						patientIds = service.getActiveOnDrugsPatients(patientIds,arvConceptIds, endDate);
+					if (checkedValue == 1)
 						patientIds=service.searchDrugOrderByDrugActive(anyOrAll, startDate, endDate, service.getListOfDrugsByConceptsIds(drugsByConceptsIds), gender, minAge, maxAge, minBirthdate, maxBirthdate);
-					}
+					
 			}
 			
 			for (Integer patientId : patientIds) {

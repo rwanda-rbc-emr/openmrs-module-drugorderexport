@@ -113,8 +113,8 @@ public class PatientOnRegimenTypeController extends ParameterizableViewControlle
 			
 			SimpleDateFormat df = OpenmrsUtil.getDateFormat();
 			
-//			String patientsOnCateg = request.getParameter("viewCategory");
-//			log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!pats on link " + request.getParameter("viewCategory"));
+			String patientsOnCateg = request.getParameter("viewCategory");
+			log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!pats on link " + request.getParameter("viewCategory"));
 			
 			Date mnBirthdate = null;
 			Date mxBirthdate = null;
@@ -143,19 +143,18 @@ public class PatientOnRegimenTypeController extends ParameterizableViewControlle
 			
 				arvPatientIds = service.getPatientsOnRegimenCategory(arvConceptIds, startDate, endDate, gender, mnAge, mxAge,
 				    mnBirthdate, mxBirthdate);
-				
-				
+	
 				if (checkedValue == 1){
 //					arvPatientIds = service.getActivePatients(arvPatientIds, endDate);
 					List<Integer> listPatients = service.getPatientsOnRegimenCategory(arvConceptIds, startDate, endDate, gender, mnAge, mxAge,
 						    mnBirthdate, mxBirthdate);
 				
 					arvPatientIds = service.getActiveOnDrugsPatients(listPatients, arvConceptIds, endDate);
-					categoryPatients.put("ARV ", arvPatientIds);
-				
-					exportPatientIds = arvPatientIds;
-				}
 					
+				}
+				categoryPatients.put("ARV ", arvPatientIds);
+				exportPatientIds = arvPatientIds;
+				
 			}
 			if (request.getParameterValues("prophylaxis") != null) {
 				prophylaxisValueStr = request.getParameterValues("prophylaxis");

@@ -35,6 +35,8 @@
 <br />
 <%@ include file="localHeader.jsp"%>
 
+<i style="color: red"><spring:message code="drugorderexport.newOnARVmsg" /></i>&nbsp;&nbsp;
+
 <b class="boxHeader" style="width: 100%"><spring:message
 	code="drugorderexport.firstRegimen" /></b>
 

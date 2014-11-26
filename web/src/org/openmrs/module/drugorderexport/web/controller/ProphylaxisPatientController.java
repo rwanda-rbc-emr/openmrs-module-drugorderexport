@@ -79,6 +79,7 @@ public class ProphylaxisPatientController extends ParameterizableViewController 
 			if (checkedValue == 1) {
 				List<Integer> patients1 = service.getAllProphylaxisPatients(startDate, endDate, gender, mnAge, mxAge, mnBirthdate, mxBirthdate);
 				patients = service.getActiveOnDrugsPatients(patients1, pophylaxisDrugIds, endDate);
+//				patients = service.getActivePatients(patients1, endDate);
 			}
 			
 			List<Patient> patientList = new ArrayList<Patient>();
