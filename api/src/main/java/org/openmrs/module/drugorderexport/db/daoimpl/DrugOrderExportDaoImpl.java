@@ -107,14 +107,14 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 	@Override
 	public String checkInputDate(Date startDate, Date endDate) {
 		if ((startDate != null) && (endDate != null))
-			return "AND (o.start_date >= '" + getDateFormated(startDate) + "' AND o.start_date <= '" + getDateFormated(endDate) + "' )";
+			return "AND (o.date_activated >= '" + getDateFormated(startDate) + "' AND o.date_activated <= '" + getDateFormated(endDate) + "' )";
 		if ((endDate == null) && (startDate != null))
-			return "AND (o.start_date >= '" + getDateFormated(startDate) + "' )";
+			return "AND (o.date_activated >= '" + getDateFormated(startDate) + "' )";
 		if ((startDate == null) && (endDate != null))
-			return "AND (o.start_date <= '" + getDateFormated(endDate) + "' )";
+			return "AND (o.date_activated <= '" + getDateFormated(endDate) + "' )";
 		if ((startDate == null) && (endDate == null)) {
 			endDate = new Date();
-			return "AND (o.start_date <= '" + getDateFormated(endDate) + "' )";
+			return "AND (o.date_activated <= '" + getDateFormated(endDate) + "' )";
 		}
 		return "";
 	}
@@ -302,8 +302,8 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		StringBuffer strb = new StringBuffer();
 		
 //		try {
-			strb.append("SELECT DISTINCT o.patient_id , ");
-			strb.append("IF((select o.discontinued='1') , 1 , 0)");
+			strb.append("SELECT DISTINCT o.patient_id ");
+			//strb.append(", IF((select o.discontinued='1') , 1 , 0)");
 			strb.append("FROM drug_order d ");
 			strb.append("INNER JOIN orders o on o.order_id=d.order_id ");
 //			strb.append("INNER JOIN drug g on g.drug_id=d.drug_inventory_id ");
@@ -314,13 +314,11 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			
 			query = sessionFactory.getCurrentSession().createSQLQuery(strb.toString());
 			
-			List<Object[]> records = query.list();
+			List<Integer> records = query.list();
 			
 			
-			for (Object[] obj : records) {
-				String booleanValue = obj[1].toString() ;
-				
-				values.add(Integer.parseInt(booleanValue));
+			for (Integer patientId : records) {
+				values.add(patientId);
 			}
 			
 					
@@ -403,7 +401,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		portion.append(" inner join orders o on pg.patient_id = o.patient_id  ");
 		//portion.append(" where ((pg.date_completed is null) or(cast(pg.date_completed as DATE)> ' " + df.format(endDate) + " ')) ");
 		portion.append(" and o.concept_id IN ("+DrugOrderExportUtil.getProphylaxisDrugConceptIdsStr()+") " );
-		portion.append(" and (cast(o.start_date as DATE)) <= '");
+		portion.append(" and (cast(o.date_activated as DATE)) <= '");
 		portion.append(getDateFormated(endDate) + "' ");
 		portion.append(" and pg.voided = 0 and p.voided = 0 and o.voided = 0 ");
 		portion.append("and pg.program_id= 2 ");
@@ -547,7 +545,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				endDate = new Date();
 				
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) >= ");
+				strBuffer.append("IF((select min(o.date_activated)) >= ");
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " , " + " true " + " ," + "false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
@@ -555,7 +553,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 			if ((startDate == null) && (endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) <= ");
+				strBuffer.append("IF((select min(o.date_activated)) <= ");
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
@@ -564,8 +562,8 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			
 			if ((startDate != null) && (endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) >= ");
-				strBuffer.append("'" + getDateFormated(startDate) + "'" + " AND  (select min(o.start_date)) <= '" + getDateFormated(endDate) + "'"
+				strBuffer.append("IF((select min(o.date_activated)) >= ");
+				strBuffer.append("'" + getDateFormated(startDate) + "'" + " AND  (select min(o.date_activated)) <= '" + getDateFormated(endDate) + "'"
 				        + " , " + " true" + " , " + " false " + ") ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
@@ -575,7 +573,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				endDate = new Date();
 				
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) <= ");
+				strBuffer.append("IF((select min(o.date_activated)) <= ");
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(attribStr);
@@ -587,7 +585,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				endDate = new Date();
 				
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) >= ");
+				strBuffer.append("IF((select min(o.date_activated)) >= ");
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " , " + " true" + " ," + " false) ");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(" group by o.patient_id");
@@ -595,7 +593,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 			if ((startDate == null) && (endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) <= ");
+				strBuffer.append("IF((select min(o.date_activated)) <= ");
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + " false)");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(" group by o.patient_id");
@@ -603,8 +601,8 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 			if ((startDate != null) && (endDate != null)) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) >= ");
-				strBuffer.append("'" + getDateFormated(startDate) + "'" + " AND (select min(o.start_date))<='" + getDateFormated(endDate) + "'"
+				strBuffer.append("IF((select min(o.date_activated)) >= ");
+				strBuffer.append("'" + getDateFormated(startDate) + "'" + " AND (select min(o.date_activated))<='" + getDateFormated(endDate) + "'"
 				        + " ," + "true" + " ," + "false)");
 				strBuffer.append(portionBuffer);
 				strBuffer.append("group by o.patient_id");
@@ -614,7 +612,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			if (startDate == null && (endDate == null)) {
 				endDate = new Date();
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) <= ");
+				strBuffer.append("IF((select min(o.date_activated)) <= ");
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + " false)");
 				strBuffer.append(portionBuffer);
 				strBuffer.append(" group by o.patient_id");
@@ -792,7 +790,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			if (startDate != null && endDate == null) {
 				endDate=new Date();
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) <= ");
+				strBuffer.append("IF((select min(o.date_activated)) <= ");
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " , " + " true " + " ," + "false)");
 				strBuffer.append(" FROM orders o  ");
 				strBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id ");
@@ -809,7 +807,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 			if (startDate == null && endDate != null) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) <= ");
+				strBuffer.append("IF((select min(o.date_activated)) <= ");
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false)");
 				strBuffer.append(" FROM orders o ");
 				strBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id ");
@@ -827,8 +825,8 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 			if (startDate != null && endDate != null) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) >= ");
-				strBuffer.append("'" + getDateFormated(startDate) + "'" + " AND (select min(o.start_date)) <='" + getDateFormated(endDate) + "'"
+				strBuffer.append("IF((select min(o.date_activated)) >= ");
+				strBuffer.append("'" + getDateFormated(startDate) + "'" + " AND (select min(o.date_activated)) <='" + getDateFormated(endDate) + "'"
 				        + " , " + " true" + " , " + " false " + ")");
 				strBuffer.append(" FROM orders o ");
 				strBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id ");
@@ -845,7 +843,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			if (startDate == null && endDate == null) {
 				endDate=new Date();
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) <= ");
+				strBuffer.append("IF((select min(o.date_activated)) <= ");
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + "false)");
 				strBuffer.append(" FROM orders o ");
 				strBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id ");
@@ -864,7 +862,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			if (startDate != null && endDate == null) {
 				endDate=new Date();
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) <= ");
+				strBuffer.append("IF((select min(o.date_activated)) <= ");
 				strBuffer.append("'" + getDateFormated(startDate) + "'" + " , " + " true" + " ," + " false)");
 				strBuffer.append(" FROM orders o ");
 				strBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id ");
@@ -879,7 +877,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 			if (startDate == null && endDate != null) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) <= ");
+				strBuffer.append("IF((select min(o.date_activated)) <= ");
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + " false)");
 				strBuffer.append(" FROM orders o ");
 				strBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id ");
@@ -895,8 +893,8 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 			if (startDate != null && endDate != null) {
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) >= ");
-				strBuffer.append("'" + getDateFormated(startDate) + "'" + " AND (select min(o.start_date))<= '" + getDateFormated(endDate) + "'"
+				strBuffer.append("IF((select min(o.date_activated)) >= ");
+				strBuffer.append("'" + getDateFormated(startDate) + "'" + " AND (select min(o.date_activated))<= '" + getDateFormated(endDate) + "'"
 				        + " ," + "true" + " ," + "false)");
 				strBuffer.append(" FROM orders o ");
 				strBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id ");
@@ -915,7 +913,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			if (startDate == null && endDate == null) {
 				endDate=new Date();
 				strBuffer.append("SELECT DISTINCT o.patient_id , ");
-				strBuffer.append("IF((select min(o.start_date)) <= ");
+				strBuffer.append("IF((select min(o.date_activated)) <= ");
 				strBuffer.append("'" + getDateFormated(endDate) + "'" + " , " + " true" + " ," + " false)");
 				strBuffer.append(" FROM orders o ");
 				strBuffer.append(" INNER JOIN patient pa on pa.patient_id=o.patient_id ");
@@ -1058,7 +1056,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		List<Integer> regimenDrugs = new ArrayList<Integer>();
 
 		for (RegimenComponent rc : components) {
-			if (!rc.getDrugOrder().getDiscontinued() && (rc.getDrugOrder().getStartDate()!=null && rc.getDrugOrder().getStartDate().getTime()<= enddate.getTime())){
+			if (rc.getDrugOrder().isActive() && (rc.getDrugOrder().getEffectiveStartDate()!=null && rc.getDrugOrder().getEffectiveStartDate().getTime()<= enddate.getTime())){
 			if(rc.getDrug()!=null)
 				regimenDrugs.add(rc.getDrug().getConcept().getConceptId());
 				else
@@ -1187,7 +1185,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		if (!gender.equals("") || minAge != null || maxAge != null || minBirthdate != null || maxBirthdate != null) {
 			if (startDate != null && endDate == null) {
 				strBuffer.append(" SELECT DISTINCT o.patient_id ,  ");
-				strBuffer.append(" IF((select min(o.start_date)) >=' " + getDateFormated(startDate) + "',true,false)  ");
+				strBuffer.append(" IF((select min(o.date_activated)) >=' " + getDateFormated(startDate) + "',true,false)  ");
 				strBuffer.append(" FROM orders o  ");
 				strBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id  ");
 //				strBuffer.append(" INNER JOIN drug g on g.drug_id=dro.drug_inventory_id   ");
@@ -1201,7 +1199,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 			if (startDate == null && endDate != null) {
 				strBuffer.append(" SELECT DISTINCT o.patient_id ,  ");
-				strBuffer.append(" IF((select min(o.start_date)) <=' " + getDateFormated(endDate) + "',true,false)  ");
+				strBuffer.append(" IF((select min(o.date_activated)) <=' " + getDateFormated(endDate) + "',true,false)  ");
 				strBuffer.append(" FROM orders o  ");
 				strBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id  ");
 //				strBuffer.append(" INNER JOIN drug g on g.drug_id=dro.drug_inventory_id   ");
@@ -1216,8 +1214,8 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 			if (startDate != null && endDate != null) {
 				strBuffer.append(" SELECT DISTINCT o.patient_id ,  ");
-				strBuffer.append(" IF((select min(o.start_date)) >=' " + getDateFormated(startDate)
-				        + "' AND (select min(o.start_date))<= '" + getDateFormated(endDate) + "',true,false)  ");
+				strBuffer.append(" IF((select min(o.date_activated)) >=' " + getDateFormated(startDate)
+				        + "' AND (select min(o.date_activated))<= '" + getDateFormated(endDate) + "',true,false)  ");
 				strBuffer.append(" FROM orders o  ");
 				strBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id  ");
 //				strBuffer.append(" INNER JOIN drug g on g.drug_id=dro.drug_inventory_id   ");
@@ -1233,7 +1231,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			if (startDate == null && endDate == null) {
 				endDate = new Date();
 				strBuffer.append(" SELECT DISTINCT o.patient_id ,  ");
-				strBuffer.append(" IF((select min(o.start_date)) <=' " + getDateFormated(endDate) + "',true,false)  ");
+				strBuffer.append(" IF((select min(o.date_activated)) <=' " + getDateFormated(endDate) + "',true,false)  ");
 				strBuffer.append(" FROM orders o  ");
 				strBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id  ");
 //				strBuffer.append(" INNER JOIN drug g on g.drug_id=dro.drug_inventory_id   ");
@@ -1249,7 +1247,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		} else {
 			if (startDate != null && endDate == null) {
 				strBuffer.append(" SELECT DISTINCT o.patient_id ,  ");
-				strBuffer.append(" IF((select min(o.start_date)) >=' " + getDateFormated(startDate) + "',true,false)  ");
+				strBuffer.append(" IF((select min(o.date_activated)) >=' " + getDateFormated(startDate) + "',true,false)  ");
 				strBuffer.append(" FROM orders o  ");
 				strBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id  ");
 //				strBuffer.append(" INNER JOIN drug g on g.drug_id=dro.drug_inventory_id   ");
@@ -1261,7 +1259,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 			if (startDate == null && endDate != null) {
 				strBuffer.append(" SELECT DISTINCT o.patient_id ,  ");
-				strBuffer.append(" IF((select min(o.start_date)) <=' " + getDateFormated(endDate) + "',true,false)  ");
+				strBuffer.append(" IF((select min(o.date_activated)) <=' " + getDateFormated(endDate) + "',true,false)  ");
 				strBuffer.append(" FROM orders o  ");
 				strBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id  ");
 //				strBuffer.append(" INNER JOIN drug g on g.drug_id=dro.drug_inventory_id   ");
@@ -1273,8 +1271,8 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			}
 			if (startDate != null && endDate != null) {
 				strBuffer.append(" SELECT DISTINCT o.patient_id ,  ");
-				strBuffer.append(" IF((select min(o.start_date)) >=' " + getDateFormated(startDate)
-				        + "' AND (select min(o.start_date))<= '" + getDateFormated(endDate) + "',true,false)  ");
+				strBuffer.append(" IF((select min(o.date_activated)) >=' " + getDateFormated(startDate)
+				        + "' AND (select min(o.date_activated))<= '" + getDateFormated(endDate) + "',true,false)  ");
 				strBuffer.append(" FROM orders o  ");
 				strBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id  ");
 //				strBuffer.append(" INNER JOIN drug g on g.drug_id=dro.drug_inventory_id   ");
@@ -1287,7 +1285,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			if (startDate == null && endDate == null) {
 				endDate = new Date();
 				strBuffer.append(" SELECT DISTINCT o.patient_id ,  ");
-				strBuffer.append(" IF((select min(o.start_date)) <=' " + getDateFormated(endDate) + "',true,false)  ");
+				strBuffer.append(" IF((select min(o.date_activated)) <=' " + getDateFormated(endDate) + "',true,false)  ");
 				strBuffer.append(" FROM orders o  ");
 				strBuffer.append(" INNER JOIN drug_order dro on dro.order_id=o.order_id  ");
 //				strBuffer.append(" INNER JOIN drug g on g.drug_id=dro.drug_inventory_id    ");
@@ -1477,7 +1475,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		
 		StringBuffer strbuf = new StringBuffer();
 		
-		strbuf.append("SELECT cast(min(o.start_date) as DATE ) FROM orders o  ");
+		strbuf.append("SELECT cast(min(o.date_activated) as DATE ) FROM orders o  ");
 		strbuf.append("INNER JOIN drug_order dro on dro.order_id = o.order_id  ");
 		strbuf.append(getQueryPortionForProphylaxis());
 		strbuf.append(" AND o.patient_id = ");
@@ -2140,7 +2138,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			queryStopReason = sessionFactory.getCurrentSession().createSQLQuery(
 			    "select DISTINCT prt.patient_id from patient prt WHERE prt.patient_id IN "
 			            + "(select DISTINCT p.patient_id from patient p "
-			            + "INNER JOIN orders o on o.patient_id = p.patient_id AND o.discontinued='1' and o.voided=0 AND p.voided=0  "
+			            + "INNER JOIN orders o on o.patient_id = p.patient_id AND o.voided=0 AND p.voided=0  "
 			            + " AND o.concept_id IN ("+DrugOrderExportUtil.gpGetARVConceptIds()+") "
 			            + getQueryPortionForSearchStopDrug(startdate, enddate, drugss, generics, stopReasons) + " ) "
 
@@ -2149,7 +2147,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		} else {
 			queryStopReason = sessionFactory.getCurrentSession().createSQLQuery(
 			    "select DISTINCT p.patient_id from patient p INNER JOIN orders o on o.patient_id = p.patient_id "
-			            + "AND o.discontinued='1' AND o.voided=0 AND p.voided=0 "
+			            + " AND o.voided=0 AND p.voided=0 "
 			            + " AND o.concept_id IN ("+DrugOrderExportUtil.gpGetARVConceptIds()+") "
 			    		);
 		}
@@ -2213,21 +2211,21 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		
 		/*=============================================================================================*/
 		if (startDate != null && endDate != null) {
-			queryPortion.append(" AND (o.discontinued_date  >= '" + getDateFormated(startDate) + "' AND o.discontinued_date AND '"
+			queryPortion.append(" AND (o.date_stopped  >= '" + getDateFormated(startDate) + "' AND o.date_stopped AND '"
 			        + getDateFormated(endDate) + "')");
 		}
 		/*============================================================================================*/
 		if (startDate != null && endDate == null) {
-			queryPortion.append(" AND (o.discontinued_date  >= '" + getDateFormated(startDate) + "')");
+			queryPortion.append(" AND (o.date_stopped  >= '" + getDateFormated(startDate) + "')");
 		}
 		/*============================================================================================*/
 		if (startDate == null && endDate != null) {
-			queryPortion.append(" AND (o.discontinued_date  <= '" + getDateFormated(endDate) + "')");
+			queryPortion.append(" AND (o.date_stopped  <= '" + getDateFormated(endDate) + "')");
 		}
 		/*============================================================================================*/
 		if (startDate == null && endDate == null) {
 			endDate = new Date();
-			queryPortion.append(" AND (o.discontinued_date  <= '" + getDateFormated(endDate) + "')");
+			queryPortion.append(" AND (o.date_stopped  <= '" + getDateFormated(endDate) + "')");
 		}
 		/*============================================================================================*/
 //		if (drugs.size() != 0 || generics.size() != 0 || stopReason.size() != 0) {
@@ -2265,7 +2263,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				for (Concept reasonId : stopReason) {
 					stopReasonIdList.add(reasonId.getConceptId());
 				}
-				queryPortion.append(" INNER JOIN concept c ON c.concept_id = o.discontinued_reason AND c.concept_id IN ("
+				queryPortion.append(" INNER JOIN concept c ON c.concept_id = o.order_reason AND c.concept_id IN ("
 				        + getStringFromIds(stopReasonIdList) + ")");
 			}
 			
@@ -2293,21 +2291,21 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			ArrayList<Integer> genericIdList = new ArrayList<Integer>();
 			/*=============================================================================================*/
 			if (startDate != null && endDate != null) {
-				queryPortion.append(" AND ( CAST(o.discontinued_date AS DATE)  >= '" + getDateFormated(startDate) + "' AND  CAST(o.discontinued_date AS DATE)  AND '"
+				queryPortion.append(" AND ( CAST(o.date_stopped AS DATE)  >= '" + getDateFormated(startDate) + "' AND  CAST(o.date_stopped AS DATE)  AND '"
 				        + getDateFormated(endDate) + "')");
 			}
 			/*============================================================================================*/
 			if (startDate != null && endDate == null) {
-				queryPortion.append(" AND ( CAST(o.discontinued_date AS DATE)   >= '" + getDateFormated(startDate) + "')");
+				queryPortion.append(" AND ( CAST(o.date_stopped AS DATE)   >= '" + getDateFormated(startDate) + "')");
 			}
 			/*============================================================================================*/
 			if (startDate == null && endDate != null) {
-				queryPortion.append(" AND ( CAST(o.discontinued_date AS DATE)   <= '" + getDateFormated(endDate) + "')");
+				queryPortion.append(" AND ( CAST(o.date_stopped AS DATE)   <= '" + getDateFormated(endDate) + "')");
 			}
 			/*============================================================================================*/
 			if (startDate == null && endDate == null) {
 				endDate = new Date();
-				queryPortion.append(" AND ( CAST(o.discontinued_date AS DATE)   <= '" + getDateFormated(endDate) + "')");
+				queryPortion.append(" AND ( CAST(o.date_stopped AS DATE)   <= '" + getDateFormated(endDate) + "')");
 			}
 			/*============================================================================================*/
 			if (generics.size() != 0 || stopReason.size() != 0) {
@@ -2335,7 +2333,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 					for (Concept reasonId : stopReason) {
 						stopReasonIdList.add(reasonId.getConceptId());
 					}
-					queryPortion.append(" INNER JOIN concept c ON c.concept_id = o.discontinued_reason AND c.concept_id IN ("
+					queryPortion.append(" INNER JOIN concept c ON c.concept_id = o.order_reason AND c.concept_id IN ("
 					        + getStringFromIds(stopReasonIdList) + ")");
 				}
 				
@@ -2456,7 +2454,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		Session session = sessionFactory.getCurrentSession();
 		
 		StringBuffer strbuf = new StringBuffer();
-		strbuf.append("SELECT cast(min(o.start_date) as DATE ) FROM orders o  ");
+		strbuf.append("SELECT cast(min(o.date_activated) as DATE ) FROM orders o  ");
 		strbuf.append("INNER JOIN drug_order dro on dro.order_id = o.order_id  ");
 		strbuf.append(" AND o.concept_id IN (" + gpDrugs + ")");
 		strbuf.append(" AND o.patient_id = " + patientId);
@@ -2740,7 +2738,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 				List<Integer> regimenDrugs = new ArrayList<Integer>();
 				
 				for (RegimenComponent rc : components) {
-					if (!rc.getDrugOrder().getDiscontinued())
+					if (rc.getDrugOrder().isActive())
                          if(rc.getDrug()!=null)
 						regimenDrugs.add(rc.getDrug().getConcept().getConceptId());
 //					regimenDrugs.add(rc.getGeneric().getConceptId());
@@ -3142,7 +3140,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		 s.append("INNER JOIN person p on p.person_id=pat.patient_id ");
 		 s.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
 		 s.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
-		 s.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		 s.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.date_activated <= '"+df.format(enddate)+"' ) ");
 		 s.append("AND ob.concept_id = "+firstLineConceptId+" AND ob.value_coded= "+firstLineValueCodedId+ " AND o.concept_id IN (" +firstLineDrugsConceptsIds+ ") ");
 		}
 		else{
@@ -3152,7 +3150,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 			s.append("INNER JOIN person p on p.person_id=pat.patient_id ");
 			s.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
 			s.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
-			s.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+			s.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.date_activated <= '"+df.format(enddate)+"' ) ");
 			s.append("AND ob.concept_id = "+firstLineConceptId+" AND ob.value_coded= "+firstLineValueCodedId+ " AND o.concept_id IN (" +firstLineDrugsConceptsIds+ ") ");
 			s.append(" AND "+patientAttributeStr(gender, minAge, maxAge, minBirthdate, maxBirthdate)); 
 		}
@@ -3184,7 +3182,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		s1.append("INNER JOIN person p on p.person_id=pat.patient_id ");
 		s1.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
 		s1.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
-		s1.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s1.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.date_activated <= '"+df.format(enddate)+"' ) ");
 		s1.append("AND ob.concept_id = "+secondLineConceptId+" AND ob.value_coded= "+secondLineValueCodedId+ " AND o.concept_id IN (" +secondLineDrugsConceptsIds+ ") ");
         
         SQLQuery query1 = sessionFactory.getCurrentSession().createSQLQuery(s1.toString());
@@ -3198,7 +3196,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		s2.append("INNER JOIN person p on p.person_id=pat.patient_id ");
 		s2.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
 		s2.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
-		s2.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s2.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.date_activated <= '"+df.format(enddate)+"' ) ");
 		s2.append("AND ob.concept_id = "+thirdLineConceptId+" AND ob.value_coded= "+thirdLineValueCodedId+ " AND o.concept_id IN (" +thirdLineDrugsConceptsIds+ ") ");
         
         SQLQuery query2 = sessionFactory.getCurrentSession().createSQLQuery(s2.toString());
@@ -3254,7 +3252,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		s.append("INNER JOIN person p on p.person_id=pat.patient_id ");
 		s.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
 		s.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
-		s.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.date_activated <= '"+df.format(enddate)+"' ) ");
 		s.append("AND ob.concept_id = "+secondLineConceptId+" AND ob.value_coded= "+secondLineValueCodedId+ " AND o.concept_id IN (" +secondLineDrugsConceptsIds+ ") ");
 		
         SQLQuery query = sessionFactory.getCurrentSession().createSQLQuery(s.toString());
@@ -3271,7 +3269,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		s1.append("INNER JOIN person p on p.person_id=pat.patient_id ");
 		s1.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
 		s1.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
-		s1.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s1.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.date_activated <= '"+df.format(enddate)+"' ) ");
 		s1.append("AND ob.concept_id = "+firstLineConceptId+" AND ob.value_coded= "+firstLineValueCodedId+ " AND o.concept_id IN (" +firstLineDrugsConceptsIds+ ") ");
         
         SQLQuery query1 = sessionFactory.getCurrentSession().createSQLQuery(s1.toString());
@@ -3284,7 +3282,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		s2.append("INNER JOIN person p on p.person_id=pat.patient_id ");
 		s2.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
 		s2.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
-		s2.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s2.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.date_activated <= '"+df.format(enddate)+"' ) ");
 		s2.append("AND ob.concept_id = "+thirdLineConceptId+" AND ob.value_coded= "+thirdLineValueCodedId+ " AND o.concept_id IN (" +thirdLineDrugsConceptsIds+ ") ");
         
         SQLQuery query2 = sessionFactory.getCurrentSession().createSQLQuery(s2.toString());
@@ -3338,7 +3336,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		s.append("INNER JOIN person p on p.person_id=pat.patient_id ");
 		s.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
 		s.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
-		s.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.date_activated <= '"+df.format(enddate)+"' ) ");
 		s.append("AND ob.concept_id = "+thirdLineConceptId+" AND ob.value_coded= "+thirdLineValueCodedId+ " AND o.concept_id IN (" +thirdLineDrugsConceptsIds+ ") ");
 		
         SQLQuery query = sessionFactory.getCurrentSession().createSQLQuery(s.toString());
@@ -3356,7 +3354,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
 		s1.append("INNER JOIN person p on p.person_id=pat.patient_id ");
 		s1.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
 		s1.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
-		s1.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s1.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.date_activated <= '"+df.format(enddate)+"' ) ");
 		s1.append("AND ob.concept_id = "+firstLineConceptId+" AND ob.value_coded= "+firstLineValueCodedId+ " AND o.concept_id IN (" +firstLineDrugsConceptsIds+ ") ");
         
         SQLQuery query1 = sessionFactory.getCurrentSession().createSQLQuery(s1.toString());
@@ -3370,7 +3368,7 @@ public class DrugOrderExportDaoImpl implements DrugOrderExportDao {
         s2.append("INNER JOIN person p on p.person_id=pat.patient_id ");
         s2.append("INNER JOIN obs ob on ob.person_id=p.person_id ");
 		s2.append("INNER JOIN program gr on gr.program_id=pg.program_id and gr.program_id=2 ");
-		s2.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.start_date <= '"+df.format(enddate)+"' ) ");
+		s2.append("AND o.voided=0 AND pat.voided=0 AND pg.voided=0 AND (o.date_activated <= '"+df.format(enddate)+"' ) ");
 		s2.append("AND ob.concept_id = "+secondLineConceptId+" AND ob.value_coded= "+secondLineValueCodedId+ " AND o.concept_id IN (" +secondLineDrugsConceptsIds+ ") ");
         
         SQLQuery query2 = sessionFactory.getCurrentSession().createSQLQuery(s1.toString());

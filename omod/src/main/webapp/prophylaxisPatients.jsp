@@ -9,10 +9,7 @@
 
 <openmrs:htmlInclude
 	file="/moduleResources/drugorderexport/functions.js" />	
-
-
-	<openmrs:htmlInclude
-	file="/moduleResources/drugorderexport/jquery.js" />  	
+	
 	<openmrs:htmlInclude
 		file="/moduleResources/drugorderexport/jquery.dataTables.js" />
 	
@@ -23,12 +20,10 @@
 		file="/moduleResources/drugorderexport/demo_table.css" />
 		
 		
-		<openmrs:htmlInclude
-		file="/moduleResources/drugorderexport/testCss.css" />
-		
-		
 	<script type="text/javascript" charset="utf-8">
-		$(document).ready(function() {
+	var $ = jQuery;
+	
+	$(document).ready(function() {
 			$('#example').dataTable( {
 				"sPaginationType": "full_numbers"
 			} );

@@ -1,14 +1,11 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
 
-<openmrs:htmlInclude file="/moduleResources/drugorderexport/jquery.js" />
 <openmrs:htmlInclude
 	file="/moduleResources/drugorderexport/jquery.PrintArea.js" />
 
 <openmrs:htmlInclude
 	file="/moduleResources/drugorderexport/validatorform.js" />
-
-
 
 
 <br />

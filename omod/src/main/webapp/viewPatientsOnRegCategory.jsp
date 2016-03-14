@@ -2,8 +2,9 @@
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <%@ taglib prefix="fn" uri="/WEB-INF/taglibs/fn.tld"%>
 
-<openmrs:htmlInclude file="/moduleResources/drugorderexport/jquery.js" />
 <script type="text/javascript" charset="utf-8">
+		var $ = jQuery;
+		
 		$(document).ready(function() {
 			$('#example').dataTable( {
 				"sPaginationType": "full_numbers"

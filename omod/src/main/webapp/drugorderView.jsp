@@ -4,13 +4,10 @@
 
 <openmrs:require privilege="View HIV Drugs Reporting" otherwise="/login.htm" redirect="/module/@MODULE_ID@/drugorderView.form" />
 
-
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 
 <openmrs:htmlInclude
 	file="/moduleResources/drugorderexport/validatordrugorderview.js" />
-
-<openmrs:htmlInclude file="/moduleResources/drugorderexport/jquery.js" />
 
 <openmrs:htmlInclude
 	file="/moduleResources/drugorderexport/jquery.dataTables.js" />
@@ -26,6 +23,8 @@
 	
 
 <script type="text/javascript" charset="utf-8">
+		var $ = jQuery;
+		
 		$(document).ready(function() {
 			$('#example').dataTable( {
 				"sPaginationType": "full_numbers"

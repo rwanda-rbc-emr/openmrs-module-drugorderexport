@@ -2,11 +2,6 @@
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 
-
-
-<openmrs:htmlInclude
-file="/moduleResources/drugorderexport/jquery.js" />  
-
 <openmrs:htmlInclude
 file="/moduleResources/drugorderexport/jquery.dataTables.js" />  
 
@@ -16,6 +11,8 @@ file="/moduleResources/drugorderexport/demo_page.css" />
 <openmrs:htmlInclude
 file="/moduleResources/drugorderexport/demo_table.css" />  
 <script type="text/javascript" charset="utf-8">
+		var $ = jQuery;
+
 		$(document).ready(function() {
 			$('#example').dataTable( {
 				"sPaginationType": "full_numbers"

@@ -91,7 +91,8 @@ public class DrugOrderExportUtil {
 		List<String> drugNames = new ArrayList<String>();
 		for (Integer id : drugIds) {
 			Drug d = Context.getConceptService().getDrug(id);
-			drugNames.add(d.getName());
+			if(d != null)
+				drugNames.add(d.getName());
 		}
 		return drugNames;
 	}

@@ -6,13 +6,10 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="org.openmrs.Drug" %>
 
-	<openmrs:htmlInclude 	file="/moduleResources/drugorderexport/jquery.js" />
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 
 <openmrs:htmlInclude
 	file="/moduleResources/drugorderexport/validatordrugorderview.js" />
-
-<openmrs:htmlInclude file="/moduleResources/drugorderexport/jquery.js" />
 
 <openmrs:htmlInclude
 	file="/moduleResources/drugorderexport/jquery.dataTables.js" />
@@ -35,9 +32,10 @@
 	<openmrs:htmlInclude file="/moduleResources/drugorderexport/jquery.simplemodal.js" />
 	
 <!-- for viewing the drugs categories  -->
-<openmrs:htmlInclude file="/moduleResources/drugorderexport/jquery-latest.js.js" />
+<!-- openmrs:htmlInclude file="/moduleResources/drugorderexport/jquery-latest.js.js" /-->
 
 <script type="text/javascript" charset="utf-8">
+		var $ = jQuery;
 
 		$(document).ready(function() {
 			$('#example').dataTable( {
@@ -54,43 +52,48 @@
 
 <script type="text/javascript">
 	var id_str =null;
+	var $ = jQuery;
+	
 	$(document).ready(function() {
-	$('.basic').click(function() {
-		var id_str = this.id;
-
-		displayDrugs(id_str);
-		
-	});
-
-
-	function displayDrugs(typeId) {
-		$.get("${pageContext.request.contextPath}/module/drugorderexport/patOnRegimenType.form",{
-			drugTypeId:typeId
-			}, function(data) {
-				var drugs = $("'"+<c:out value='${drugs}' />+"'", data).text();
-				var results = $("drugs", data).text();
+		$('.basic').click(function() {
+			var id_str = this.id;
+	
+			displayDrugs(id_str);
 			
-			$("#toDisplay").html(drugs);
-			}, "html"
-			);
-			
-	}
-
-	function viewDrugDetails(cat){
-		$(document).ready(function() {
-			$('#prophyDiv').hide();
-			$('#arvDiv').hide();
-			$('.basic').click(function() {
-				var id_str = this.id;
-				$("#prophyDiv").show();
+		});
+	
+	
+		function displayDrugs(typeId) {
+			$.get("${pageContext.request.contextPath}/module/drugorderexport/patOnRegimenType.form",{
+				drugTypeId:typeId
+				}, function(data) {
+					var drugs = $("<c:out value='${drugs}' />", data).text();
+					var results = $("drugs", data).text();
 				
-			});
-			} );
-		
-	}
+				$("#toDisplay").html(drugs);
+				}, "html"
+				);
+				
+		}
+	
+		function viewDrugDetails(cat){
+			$(document).ready(function() {
+				$('#prophyDiv').hide();
+				$('#arvDiv').hide();
+				$('.basic').click(function() {
+					var id_str = this.id;
+					$("#prophyDiv").show();
+					
+				});
+				} );
+			
+		}
+	});
 </script>
 
 <script type="text/javascript">
+var $ = jQuery;
+
 $(document).ready(function() {
 	/////////////////////////arv div//////////////////////////
 	//var l=${catLink};
