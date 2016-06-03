@@ -1,6 +1,7 @@
-`<%@ include file="/WEB-INF/template/include.jsp"%>
+<%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <%@ taglib prefix="fn" uri="/WEB-INF/taglibs/fn.tld"%>
+
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.Map" %>
@@ -24,11 +25,10 @@
 <openmrs:htmlInclude
 	file="/moduleResources/drugorderexport/functions.js" />
 	
-	
 <!--  the following includes are for the popup    -->
 	<openmrs:htmlInclude file="/moduleResources/drugorderexport/basic.css" />
 	<openmrs:htmlInclude file="/moduleResources/drugorderexport/demo.css" />
-	<openmrs:htmlInclude 	file="/moduleResources/drugorderexport/basic.js" />
+	<openmrs:htmlInclude file="/moduleResources/drugorderexport/basic.js" />
 	<openmrs:htmlInclude file="/moduleResources/drugorderexport/jquery.simplemodal.js" />
 	
 <!-- for viewing the drugs categories  -->
