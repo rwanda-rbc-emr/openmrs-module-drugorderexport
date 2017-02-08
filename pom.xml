@@ -4,7 +4,7 @@
 
 	<groupId>org.openmrs.module</groupId>
 	<artifactId>drugorderexport</artifactId>
-	<version>0.5.4</version>
+	<version>0.5.5-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>HIV Drugs Reporting</name>
 	<description>Parent project for HIV Drugs Reporting</description>
