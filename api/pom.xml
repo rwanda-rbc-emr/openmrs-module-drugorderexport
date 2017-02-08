@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.openmrs.module</groupId>
 		<artifactId>drugorderexport</artifactId>
-		<version>0.5.4-SNAPSHOT</version>
+		<version>0.5.4</version>
 	</parent>
 	<artifactId>drugorderexport-api</artifactId>
 	<packaging>jar</packaging>
